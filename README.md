@@ -161,7 +161,13 @@ With your configured `.env` present:
 docker compose up --build
 ```
 
-Compose uses its own persistent MongoDB volume and overrides `MONGO_URL` for the web container to `mongodb://mongo:27017`. Both published ports bind to loopback. To use Atlas instead, run Flask directly with your Atlas `MONGO_URL`, or change the Compose override. The included local MongoDB container is intentionally a development database; do not expose it publicly. `docker compose down` preserves data; adding `-v` removes it.
+Compose includes independent `web`, `mongo`, and `caddy` services, with no startup dependencies. Start an individual service with `docker compose up -d mongo`, `docker compose up -d web`, or `docker compose up -d caddy`.
+
+The web container reads `MONGO_URL` from `.env`. Set it to `mongodb://mongo:27017` to use the included MongoDB service, or keep your external MongoDB / Atlas URL. When running Flask directly on the host with the included database, use `mongodb://localhost:27017`.
+
+Caddy proxies **http://localhost** to `web:9000` using `Caddyfile`; the app is also available directly at **http://localhost:9000**. To sign in through Caddy, set `APP_BASE_URL=http://localhost` and register the matching Auth0 callback and logout URLs. Caddy can start before the web service; requests need the web service to be running.
+
+All published ports bind to loopback. MongoDB data and Caddy state use persistent volumes. `docker compose down` preserves them; adding `-v` removes them.
 
 ## Tests and checks
 
