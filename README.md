@@ -165,9 +165,16 @@ Compose includes independent `web`, `mongo`, and `caddy` services, with no start
 
 The web container reads `MONGO_URL` from `.env`. Set it to `mongodb://mongo:27017` to use the included MongoDB service, or keep your external MongoDB / Atlas URL. When running Flask directly on the host with the included database, use `mongodb://localhost:27017`.
 
-Caddy proxies **http://localhost** to `web:9000` using `Caddyfile`; the app is also available directly at **http://localhost:9000**. To sign in through Caddy, set `APP_BASE_URL=http://localhost` and register the matching Auth0 callback and logout URLs. Caddy can start before the web service; requests need the web service to be running.
+Caddy accepts public HTTP and HTTPS connections on ports 80 and 443 and proxies to `web:9000`. Set your domain in `.env` (hostname only for `CADDY_DOMAIN`):
 
-All published ports bind to loopback. MongoDB data and Caddy state use persistent volumes. `docker compose down` preserves them; adding `-v` removes them.
+```dotenv
+CADDY_DOMAIN=workouts.example.com
+APP_BASE_URL=https://workouts.example.com
+```
+
+Point the domain's DNS A / AAAA records to your server and allow inbound TCP ports 80 and 443. UDP port 443 is also published for HTTP/3. Caddy obtains and renews certificates and redirects HTTP to HTTPS automatically; see [Caddy's automatic HTTPS requirements](https://caddyserver.com/docs/automatic-https). Register the matching HTTPS callback and logout URLs in Auth0. After changing `.env`, apply it with `docker compose up -d`. Caddy can start before the web service; requests need the web service to be running.
+
+Without `CADDY_DOMAIN`, Caddy defaults to `localhost` with a local certificate, which requires trusting Caddy's local CA in your browser. Direct HTTP access remains available at **http://localhost:9000**. The web and MongoDB published ports bind to loopback. MongoDB data and Caddy certificates / state use persistent volumes. `docker compose down` preserves them; adding `-v` removes them.
 
 ## Tests and checks
 

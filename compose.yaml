@@ -14,8 +14,12 @@ services:
 
   caddy:
     image: caddy:2-alpine
+    environment:
+      CADDY_DOMAIN: ${CADDY_DOMAIN:-localhost}
     ports:
-      - "127.0.0.1:80:80"
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
