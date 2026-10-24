@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:9000:9000"
+    env_file: .env
+    environment:
+      MONGO_URL: mongodb://mongodb-2:27017
+    depends_on:
+      mongo:
+        condition: service_healthy
+volumes:
+  evolve_mongo:

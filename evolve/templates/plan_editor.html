@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import icon, csrf_field %}
+{% block title %}{{ 'Edit plan' if plan else 'New workout plan' }}{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='editor.js') }}" defer></script>{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">YOUR ROUTINE, YOUR WAY</span><h1>{{ 'Fine-tune your plan.' if plan else 'Build your next chapter.' }}</h1><p>Choose your days, add your exercises, and make a plan that fits.</p></div><a class="button secondary" href="{{ url_for('plans.detail', plan_id=plan._id) if plan else url_for('plans.index') }}">Cancel</a></div>
+{% if error %}<div class="flash error" role="alert">{{ error }}</div>{% endif %}
+<noscript><div class="flash error">Enable JavaScript to use the workout plan editor.</div></noscript>
+<form method="post" data-plan-editor>{{ csrf_field() }}<input type="hidden" name="version" value="{{ plan.version if plan else 0 }}"><input type="hidden" name="plan_payload"><script type="application/json" id="plan-data">{{ initial|tojson }}</script>
+<section class="card form-card"><div class="card-heading"><h2>The big picture</h2><span class="badge neutral">STEP 01</span></div><div class="form-grid"><label>Plan name<input name="plan_name" required maxlength="100" value="{{ initial.get('name','') }}" placeholder="e.g. Stronger every week"></label><label>Your goal<input name="plan_goal" required maxlength="300" value="{{ initial.get('goal','') }}" placeholder="What are you working toward?"></label><label>Start date<input type="date" name="start_date" value="{{ start_date }}" required><span class="field-help">Choose today or a future date. Week 1 runs for 7 days from this date. Each weekday starts on its next occurrence.</span></label><label>Duration in weeks<input type="number" name="plan_weeks" min="1" max="52" value="{{ initial.get('weeks',4) }}" required></label></div></section>
+<div class="section-toolbar"><div><h2>Your weekly sessions</h2><p class="muted small">One session per weekday. Repeat your weekly schedule throughout the plan.</p></div><button type="button" class="button secondary" data-add-session>{{ icon('plus') }} Add session</button></div>
+{% if plan %}<p class="small muted">Sessions with workout history must keep their weekday and stay in the plan. The start date locks after your first logged session.</p>{% endif %}
+<div id="session-list"></div><div class="flash error hidden" role="alert" id="editor-error"></div><div class="form-footer sticky-footer"><span class="muted small">Your plan. Room to grow.</span><button class="button">{{ icon('check') }} Save workout plan</button></div></form>
+{% endblock %}

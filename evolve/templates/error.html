@@ -1,0 +1,4 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import icon %}
+{% block title %}{{ status }}{% endblock %}
+{% block content %}<section class="error-page"><span class="eyebrow">{{ status }} · LET’S RESET</span><h1>{{ 'A little patience.' if status >= 500 else 'One small detour.' }}</h1><p>{{ message }}</p><a class="button" href="{{ url_for('main.dashboard') if current_user else url_for('main.home') }}">{{ 'Back to your dashboard' if current_user else 'Back to home' }} {{ icon('arrow') }}</a></section>{% endblock %}

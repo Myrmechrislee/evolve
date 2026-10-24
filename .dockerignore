@@ -1,0 +1,15 @@
+.env
+.venv
+.git
+.codex
+.agents
+.aws
+.pytest_cache
+.ruff_cache
+.browser-cache
+.tmp
+.qa
+.qa-dom
+__pycache__
+*.zip
+test-results

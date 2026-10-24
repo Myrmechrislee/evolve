@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import icon, csrf_field %}
+{% block title %}Workout plans{% endblock %}
+{% block content %}
+<div class="page-heading"><div><span class="eyebrow">A LITTLE STRUCTURE. A LOT OF POSSIBILITY.</span><h1>Your workout plans<span class="mint-dot">.</span></h1><p>Find your rhythm, make it yours, and keep moving forward.</p></div><div class="button-group">{% if is_pro %}<a class="button secondary" href="{{ url_for('coach.index') }}">{{ icon('spark') }} Create with AI</a>{% endif %}<a class="button" href="{{ url_for('plans.new') }}">{{ icon('plus') }} New plan</a></div></div>
+{% if plans %}<div class="plan-grid">{% for item in plans %}{% set plan = item.plan %}<article class="card plan-card"><div class="card-heading"><span class="plan-card-icon">{{ icon('dumbbell') }}</span>{% if current_user.active_plan_id == plan._id %}<span class="badge pro-light">FOLLOWING</span>{% else %}<span class="badge neutral">{{ plan.weeks }} WEEKS</span>{% endif %}</div><a class="card-title-link" href="{{ url_for('plans.detail', plan_id=plan._id) }}"><h2>{{ plan.name }}</h2></a><p>{{ plan.goal }}</p><div class="plan-meta"><span>{{ icon('calendar') }} {{ plan.weeks }} weeks</span><span>{{ icon('dumbbell') }} {{ plan.sessions|length }} days / week</span></div><div class="progress-label"><span>{{ item.progress.completed }} / {{ item.progress.total }} sessions</span><strong>{{ item.progress.percent }}%</strong></div><div class="progress-track"><span style="width:{{ item.progress.percent }}%"></span></div><div class="plan-card-footer"><span class="muted small">Starts {{ plan.start_date|shortdate }}</span><a class="text-link" href="{{ url_for('plans.detail', plan_id=plan._id) }}">Open plan {{ icon('arrow') }}</a>
+<form action="{{ url_for('plans.delete', plan_id=plan._id) }}" method="post" data-confirm="Delete “{{ plan.name }}”? Your workout logs will be kept.">
+  {{ csrf_field() }}
+  <input type="hidden" name="confirm" value="DELETE">
+  <button class="text-button danger-text" aria-label="Delete plan: {{ plan.name }}">Delete plan</button>
+</form>
+</div></article>{% endfor %}</div>{% else %}<section class="card empty-state"><span class="empty-icon">{{ icon('plan') }}</span><h2>A plan turns “someday” into today.</h2><p>Build your first routine with the exercises and schedule that work for you.</p><a class="button" href="{{ url_for('plans.new') }}">Create your first plan {{ icon('arrow') }}</a></section>{% endif %}
+{% endblock %}
