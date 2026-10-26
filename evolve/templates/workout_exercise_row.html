@@ -1,0 +1,18 @@
+<div class="log-exercise-row" data-target-sets="{{ item.target_sets|default('') }}" data-target-reps="{{ item.target|default('') }}">
+  <div class="exercise-name-field">
+    <label>Exercise<input name="exercise_name" data-exercise-name value="{{ item.name }}" required maxlength="100" placeholder="Exercise name"></label>
+    <div data-exercise-hint hidden></div>
+  </div>
+  <div class="exercise-set-field">
+    <label for="{{ row_id }}" data-set-label>Completed sets</label>
+    <div class="set-counter" data-set-counter>
+      <button type="button" class="set-counter-button" data-set-step="-1" aria-label="Remove one completed set" hidden>−</button>
+      <input type="number" id="{{ row_id }}" name="exercise_sets" data-set-count value="{{ item.sets }}" min="1" max="30" step="1" inputmode="numeric" required>
+      <button type="button" class="set-counter-button" data-set-step="1" aria-label="Add one completed set" hidden>+</button>
+    </div>
+    {% if item.target_sets %}<span class="field-help set-target">Target: {{ item.target_sets }} set{{ 's' if item.target_sets != 1 else '' }}</span>{% endif %}
+  </div>
+  <label>Reps / set<input type="number" name="exercise_reps" value="{{ item.reps }}" min="0" max="500" required>{% if item.target %}<span class="field-help">Target: {{ item.target }}</span>{% endif %}</label>
+  <label>kg / rep<input type="number" name="exercise_weight" value="{{ item.weight_kg }}" min="0" max="1000" step="0.1" required></label>
+  <button type="button" class="icon-button remove-row" data-remove-row aria-label="Remove exercise">×</button>
+</div>

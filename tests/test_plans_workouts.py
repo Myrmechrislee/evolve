@@ -120,6 +120,49 @@ def test_freestyle_logs_do_not_complete_plan(client, db, make_user, make_plan, s
     assert b"0 of 4 workouts complete" in client.get(f"/plans/{plan['_id']}").data
 
 
+def test_completed_set_counts_survive_errors_and_determine_saved_volume(
+    client, db, make_user, make_plan, sign_in, workout_data
+):
+    user = make_user()
+    plan = make_plan(user)
+    sign_in(user)
+    data = workout_data(plan)
+    page = client.get("/workouts/new", query_string={"occurrence": data["occurrence"]})
+    assert page.status_code == 200
+    assert b'data-set-count value="0"' in page.data
+    assert b"Target: 3 sets" in page.data
+
+    data["exercise_sets"] = ["2", "1"]
+    data["effort"] = "11"
+    response = client.post("/workouts/new", data=data)
+    assert response.status_code == 422
+    assert b'data-set-count value="2"' in response.data
+    assert b'data-set-count value="1"' in response.data
+    assert b"Target: 3 sets" in response.data
+    assert db.workouts.count_documents({}) == 0
+
+    data["effort"] = "7"
+    assert client.post("/workouts/new", data=data).status_code == 302
+    log = db.workouts.find_one({})
+    assert [item["sets"] for item in log["exercises"]] == [2, 1]
+    assert log["volume_kg"] == 550
+    assert db.plans.find_one({"_id": plan["_id"]})["sessions"][0]["exercises"][0]["sets"] == 3
+
+
+def test_invalid_exercise_values_preserve_other_completed_set_counts(
+    client, db, make_user, sign_in, workout_data
+):
+    sign_in(make_user())
+    data = workout_data()
+    data["exercise_sets"] = ["4", "2"]
+    data["exercise_reps"] = ["10", "-1"]
+    response = client.post("/workouts/new", data=data)
+    assert response.status_code == 422
+    assert b'data-set-count value="4"' in response.data
+    assert b'data-set-count value="2"' in response.data
+    assert db.workouts.count_documents({}) == 0
+
+
 @pytest.mark.parametrize(
     "field,value",
     [

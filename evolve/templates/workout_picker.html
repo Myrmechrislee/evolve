@@ -1,0 +1,58 @@
+<details class="card workout-picker" aria-labelledby="workout-picker-title" {% if not selected and request.args.get('freestyle') != '1' %}open{% endif %}>
+  <summary class="workout-picker-toggle">
+    <span class="workout-picker-summary-copy">
+      <strong id="workout-picker-title">Choose your workout</strong>
+      <span>{% if selected %}{{ selected.title }} · Week {{ week }} · {{ plan.name }}{% elif request.args.get('freestyle') == '1' %}Freestyle workout{% else %}Your plans, week by week.{% endif %}</span>
+    </span>
+    <span class="workout-picker-toggle-label"><span class="picker-closed-label">{{ 'Change workout' if selected or request.args.get('freestyle') == '1' else 'Show workouts' }}</span><span class="picker-open-label">Hide workouts</span>{{ icon('chevron') }}</span>
+  </summary>
+  <div class="card-heading workout-picker-heading">
+    <p>Pick a session from a week below. Week numbers follow each plan’s start date.</p>
+    <a class="button secondary small-button" data-workout-choice href="{{ url_for('workouts.new', freestyle=1) }}#workout-details" {% if not selected %}aria-current="true"{% endif %}>{{ icon('plus') }} Log freestyle</a>
+  </div>
+  {% for table in plan_tables %}
+  <div class="workout-picker-plan">
+    <div class="workout-picker-plan-heading">
+      <h3 id="picker-plan-{{ table.plan._id }}">{{ table.plan.name }}</h3>
+      <span>{{ table.completed }} of {{ table.total }} completed</span>
+    </div>
+    <p class="workout-picker-scroll-hint">Scroll across to see all days {{ icon('arrow') }}</p>
+    <div class="session-table-scroll" role="region" aria-labelledby="picker-plan-{{ table.plan._id }}" tabindex="0">
+      <table class="session-table" aria-labelledby="picker-plan-{{ table.plan._id }}">
+        <thead><tr><th scope="col">Week</th>{% for day in days %}<th scope="col">{{ day }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for row in table.rows %}
+          <tr>
+            <th scope="row">Week {{ row.week }}</th>
+            {% for day in days %}
+            {% set choice = row.workouts.get(day) %}
+            <td>
+              {% if choice %}
+                {% if choice.completed %}
+                <div class="session-choice is-completed">
+                  <span class="session-choice-date">{{ choice.date.strftime('%b %d') }}</span>
+                  <strong>{{ choice.session.title }}</strong>
+                  <span class="session-choice-status">{{ icon('check') }} Completed</span>
+                </div>
+                {% else %}
+                <a class="session-choice {% if choice.key == occurrence %}is-selected{% endif %}" data-workout-choice href="{{ url_for('workouts.new', occurrence=choice.key) }}#workout-details" aria-label="Log week {{ row.week }}, {{ day }}: {{ choice.session.title }}" {% if choice.key == occurrence %}aria-current="true"{% endif %}>
+                  <span class="session-choice-date">{{ choice.date.strftime('%b %d') }}</span>
+                  <strong>{{ choice.session.title }}</strong>
+                  <span class="session-choice-status">{% if choice.key == occurrence %}{{ icon('check') }} Selected{% else %}Log workout {{ icon('arrow') }}{% endif %}</span>
+                </a>
+                {% endif %}
+              {% else %}
+                <span class="session-rest"><span aria-hidden="true">—</span><span class="sr-only">No workout planned</span></span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="workout-picker-empty"><p>No planned workouts yet. Log a freestyle session or build a plan to get started.</p><a class="subtle-link" href="{{ url_for('plans.new') }}">Create a plan {{ icon('arrow') }}</a></div>
+  {% endfor %}
+</details>

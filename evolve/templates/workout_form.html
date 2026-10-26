@@ -1,11 +1,39 @@
 {% extends 'base.html' %}
 {% from 'macros.html' import icon, csrf_field %}
 {% block title %}Log a workout{% endblock %}
+{% block scripts %}
+<link rel="stylesheet" href="{{ url_for('static', filename='workout-picker.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='set-counter.css') }}">
+<script src="{{ url_for('static', filename='workout-drafts.js') }}" defer></script>
+{% endblock %}
 {% block content %}
 <div class="page-heading"><div><span class="eyebrow">MAKE IT COUNT</span><h1>Another session. Another win.</h1><p>Capture what you actually did. Small steps still move you forward.</p></div></div>
-<form method="get" class="card session-picker"><label>Choose a planned session, or log a freestyle workout<select name="occurrence"><option value="">Freestyle workout</option>{% for choice in choices %}<option value="{{ choice.key }}" {% if choice.key == occurrence %}selected{% endif %}>{{ choice.plan_name }} · Week {{ choice.week }} · {{ choice.session.day }}: {{ choice.session.title }}</option>{% endfor %}</select></label><button class="button secondary">Load session {{ icon('arrow') }}</button></form>
+{% include 'workout_picker.html' %}
+<div id="workout-details">
 {% if error %}<div class="flash error" role="alert">{{ error }}</div>{% endif %}
-<form method="post" data-workout-form>{{ csrf_field() }}<input type="hidden" name="request_id" value="{{ request_id }}"><input type="hidden" name="occurrence" value="{{ occurrence }}"><input type="hidden" name="plan_version" value="{{ plan.version if plan else '' }}">
+<form method="post" data-workout-form data-draft-url="{{ url_for('workout_drafts.save') }}" data-draft-owner="{{ current_user._id }}" data-draft-updated="{{ draft.updated_at.isoformat() if draft else '' }}" {% if draft %}data-draft-restored{% endif %} {% if request.method == 'POST' %}data-draft-submitted{% endif %}>{{ csrf_field() }}<input type="hidden" name="request_id" value="{{ request_id }}"><input type="hidden" name="occurrence" value="{{ occurrence }}"><input type="hidden" name="plan_version" value="{{ plan.version if plan else '' }}">
+<p class="workout-draft-status" data-workout-draft-status role="status" aria-live="polite" hidden></p>
 <section class="card form-card"><div class="card-heading"><h2>{{ selected.title if selected else 'Your workout' }}</h2>{% if selected %}<span class="badge pro-light">WEEK {{ week }} · {{ selected.day|upper }}</span>{% endif %}</div><div class="form-grid">{% if not selected %}<label class="full-width">Workout name<input name="title" value="{{ values.get('title','') }}" maxlength="100" placeholder="e.g. A good full body session" required></label>{% endif %}<label>Date<input type="date" name="logged_date" value="{{ values.get('logged_date',today.isoformat()) }}" max="{{ today.isoformat() }}" min="1900-01-01" required></label><label>Duration <span class="input-unit">minutes</span><input type="number" name="duration_minutes" min="1" max="600" value="{{ values.get('duration_minutes',current_user.profile.session_minutes) }}" required></label><label>Effort <span class="input-unit">1–10</span><input type="number" name="effort" min="1" max="10" value="{{ values.get('effort',7) }}" required><span class="field-help">1 = very easy · 10 = maximum effort</span></label></div></section>
-<section class="card form-card"><div class="card-heading"><h2>The work you put in</h2><button type="button" class="button secondary small-button" data-add-log-exercise>{{ icon('plus') }} Add exercise</button></div><p class="muted small">Enter actual completed sets and reps. Each row uses the same reps and weight across its sets. Use separate rows if they differ. For timed exercises, use 0 reps and record the duration in your notes.</p><div id="log-exercises">{% for item in exercise_rows %}<div class="log-exercise-row"><div class="exercise-name-field"><label>Exercise<input name="exercise_name" data-exercise-name value="{{ item.name }}" required maxlength="100"></label><div data-exercise-hint hidden></div></div><label>Sets<input type="number" name="exercise_sets" value="{{ item.sets }}" min="1" max="30" required></label><label>Reps / set<input type="number" name="exercise_reps" value="{{ item.reps }}" min="0" max="500" required>{% if item.target %}<span class="field-help">Target: {{ item.target }}</span>{% endif %}</label><label>kg / rep<input type="number" name="exercise_weight" value="{{ item.weight_kg }}" min="0" max="1000" step="0.1" required></label><button type="button" class="icon-button remove-row" data-remove-row aria-label="Remove exercise">×</button></div>{% endfor %}</div></section><section class="card form-card"><label>Session notes <span class="optional">Optional</span><textarea name="notes" rows="4" maxlength="3000" placeholder="How did it feel? Anything to remember for next time?">{{ values.get('notes','') }}</textarea></label></section><div class="form-footer"><a class="text-link" href="{{ url_for('workouts.index') }}">Cancel</a><button class="button">{{ icon('check') }} Save workout</button></div></form>
+<section class="card form-card">
+  <div class="card-heading set-counter-heading">
+    <h2>The work you put in</h2>
+    <output class="set-total" data-set-total role="status" aria-live="polite" aria-atomic="true" hidden>0 sets completed</output>
+    <button type="button" class="button secondary small-button" data-add-log-exercise>{{ icon('plus') }} Add exercise</button>
+  </div>
+  <p class="muted small set-counter-instructions">Tap + after each set, or enter your completed count. Use − to undo a set. Each logged exercise needs at least one completed set.</p>
+  <p class="muted small">Each row uses the same reps and weight across its sets. Use separate rows if they differ. For timed exercises, use 0 reps and record the duration in your notes.</p>
+  <div id="log-exercises">
+    {% for item in exercise_rows %}
+    {% set row_id = 'completed-sets-' ~ loop.index %}
+    {% include 'workout_exercise_row.html' %}
+    {% endfor %}
+  </div>
+  <template id="log-exercise-template">
+    {% with item={'name': '', 'sets': 0, 'reps': 10, 'weight_kg': 0}, row_id='new-completed-sets' %}
+    {% include 'workout_exercise_row.html' %}
+    {% endwith %}
+  </template>
+</section>
+<section class="card form-card"><label>Session notes <span class="optional">Optional</span><textarea name="notes" rows="4" maxlength="3000" placeholder="How did it feel? Anything to remember for next time?">{{ values.get('notes','') }}</textarea></label></section><div class="form-footer"><a class="text-link" href="{{ url_for('workouts.index') }}">Back to log</a><button class="button">{{ icon('check') }} Save workout</button></div></form>
+</div>
 {% endblock %}

@@ -1,0 +1,42 @@
+<section class="card weekly-workouts" id="weekly-workouts" aria-labelledby="weekly-workouts-title">
+  <div class="card-heading weekly-heading">
+    <div>
+      <h2 id="weekly-workouts-title">Your week in workouts</h2>
+      <p class="weekly-range">
+        <time datetime="{{ schedule.start.isoformat() }}">{{ schedule.start.strftime('%b %d') }}{% if schedule.start.year != schedule.end.year %}, {{ schedule.start.year }}{% endif %}</time>
+        – <time datetime="{{ schedule.end.isoformat() }}">{{ schedule.end.strftime('%b %d, %Y') }}</time>
+      </p>
+    </div>
+    <nav class="week-navigation" aria-label="Workout weeks">
+      <a class="icon-button" href="{{ url_for('main.dashboard', week=schedule.previous.isoformat()) }}#weekly-workouts" aria-label="Previous week">{{ icon('chevron-left') }}</a>
+      <a class="button secondary small-button" href="{{ url_for('main.dashboard') }}#weekly-workouts" {% if schedule.is_current %}aria-current="date"{% endif %}>This week</a>
+      <a class="icon-button" href="{{ url_for('main.dashboard', week=schedule.next.isoformat()) }}#weekly-workouts" aria-label="Next week">{{ icon('chevron') }}</a>
+    </nav>
+  </div>
+  <div class="week-grid">
+    {% for day in schedule.days %}
+    <section class="week-day {% if day.date == today %}is-today{% endif %}" aria-label="{{ day.date.strftime('%A, %B %d, %Y') }}">
+      <div class="week-day-heading">
+        <time datetime="{{ day.date.isoformat() }}" {% if day.date == today %}aria-current="date"{% endif %}>
+          <span>{{ day.date.strftime('%a') }}</span><strong>{{ day.date.day }}</strong>
+        </time>
+        {% if day.date == today %}<span class="week-today">Today</span>{% endif %}
+      </div>
+      <div class="week-day-workouts">
+        {% for workout in day.workouts %}
+        <a class="week-workout {% if workout.completed %}is-completed{% endif %}" href="{% if workout.completed %}{{ url_for('workouts.index', page=workout.log_page) }}#workout-{{ workout.log_id }}{% else %}{{ url_for('workouts.new', occurrence=workout.occurrence) }}{% endif %}">
+          <span class="week-workout-status">{{ icon('check' if workout.completed else 'dumbbell') }} {{ 'Completed' if workout.completed else 'Planned' }}</span>
+          <strong>{{ workout.title }}</strong>
+          <span class="week-workout-plan">{{ workout.plan_name }}</span>
+          <span class="week-workout-meta">{{ workout.exercise_count }} exercise{{ 's' if workout.exercise_count != 1 else '' }}{% if workout.completed %} · {{ workout.duration_minutes }} min{% endif %}</span>
+          <span class="week-workout-action">{{ 'View log' if workout.completed else 'Log session' }} {{ icon('arrow') }}</span>
+        </a>
+        {% else %}
+        <p class="week-empty">No workouts</p>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </div>
+  <p class="weekly-summary">{{ schedule.completed }} completed · {{ schedule.planned }} planned <span>All your plans & freestyle workouts</span></p>
+</section>

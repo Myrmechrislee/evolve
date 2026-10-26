@@ -9,9 +9,11 @@ A development Flask app for building a workout routine, logging training, and fo
 - MongoDB persistence for users, plans, logs, chat history, AI drafts, and per-user AI quotas. The connection string is read from **`MONGO_URL`**.
 - Free and Pro users can create, edit, follow, and delete plans manually. The editor supports 1–52 weeks, up to seven weekly sessions, and exercises with sets, reps or time, rest, and notes.
 - Pro members can generate and revise complete plans by chatting with a ChatGPT model through OpenRouter. Proposed changes remain drafts until explicitly applied. Manual editing is always available.
-- Planned or freestyle workout logging with actual sets, reps, kg, duration, effort, and notes. Logs include a historical snapshot, so later exercise edits do not rewrite previous training.
+- Planned or freestyle workout logging with actual sets, reps, kg, duration, effort, and notes. Pick a planned workout from a table with a row for each week and weekday columns; completed sessions remain marked. Logs include a historical snapshot, so later exercise edits do not rewrite previous training.
+- Per-exercise set counters start at zero, support +/− or direct entry, and show a running workout total. Planned set targets stay visible; completed counts determine the saved training volume and survive validation errors.
+- Workout drafts autosave as you type, including incomplete fields, set counters, and added or removed exercises. Drafts are private and separate for each planned occurrence or freestyle workout. A browser backup preserves recent input during refreshes or connection loss; drafts sync when connectivity returns. **Save workout** completes the log and clears its draft.
 - Exercise photos and step-by-step instructions for matching movements, available to Free and Pro users in plans, the dashboard, workout logging/history, and AI draft previews.
-- Dashboard and progress page: completed planned occurrences, weekly frequency, total workouts, 30-day training time, and weight volume.
+- Dashboard with a Monday–Sunday workout calendar across all plans and freestyle logs, week navigation, and direct links to log sessions or view completed workouts. Dashboard and progress page show completed planned occurrences, weekly frequency, total workouts, 30-day training time, and weight volume.
 - CSRF protection, server-side ownership / Pro checks, signed HttpOnly session cookies, OIDC state / nonce / PKCE, optimistic plan version checks, input validation, duplicate-log indexes, and hourly AI quotas.
 
 ## Quick start
@@ -141,6 +143,7 @@ To import a newer version, add `--revision FULL_COMMIT_SHA`. See `evolve/data/RE
 - `completed / planned occurrences × 100` is rounded to the nearest whole percentage. Workout history and total training metrics include freestyle sessions; freestyle sessions do not complete a plan occurrence.
 - The dashboard follows your selected plan. Creating a new plan selects it; **Follow this plan** changes it. If the selected plan was deleted, the most recently updated remaining plan is used.
 - Weekly activity starts Monday in your profile timezone and uses the date entered on each log. Future workout dates are rejected. It is possible to complete a scheduled future occurrence early using today's actual workout date.
+- The overview's weekly calendar shows pending sessions from all saved plans on their scheduled dates and completed workouts on their actual logged dates. A completed occurrence appears once, even when logged early or on another day. Freestyle logs and snapshots from deleted plans remain visible; previous/next week controls let you browse history and upcoming sessions.
 - Volume is `completed sets × reps per set × kg per rep`. Bodyweight or timed rows can use zero kg or reps; their training time still counts. Use separate rows for sets with differing reps or weights.
 - After a session has history, its ID and weekday must remain in the plan. Logged weeks cannot be removed, and the start date is locked. Other manual edits, including adding sessions or weeks, update the denominator. Deleting a log recalculates progress. Deleting a plan preserves its logged snapshots.
 
@@ -153,6 +156,7 @@ To import a newer version, add `--revision FULL_COMMIT_SHA`. See `evolve/data/RE
 | `users` | Unique Auth0 subject, profile, grants, selected plan |
 | `plans` | User-owned versioned plans with stable session/exercise IDs |
 | `workouts` | Actual exercises and plan/session/week snapshots |
+| `workout_drafts` | Private, resumable workout forms; unique per user and planned occurrence or freestyle |
 | `conversations` | Bounded conversation history per user / selected plan |
 | `ai_drafts` | Reviewable drafts; TTL expiry after seven days |
 | `ai_usage` | Atomic per-user hourly quota counters with TTL cleanup |
@@ -224,7 +228,7 @@ ruff check evolve tests scripts app.py demo.py
 
 Tests use an isolated in-memory MongoDB substitute and mocked Auth0 / OpenRouter responses. They cover onboarding, ownership, server-side Pro checks, plan CRUD and stale writes, actual workout logging and duplicate protection, progress, AI consent / validation / drafts / expiry / rate limits, CSRF, and exercise hint matching, local photos, import validation, caching, and access controls. No real API key, Auth0 tenant, or MongoDB server is required by the test suite. Live integrations require your own credentials.
 
-Build verification: **145 tests passed**, with Ruff passing as well. Chrome checks against the isolated demo verified photos loading only on demand, local-only requests, keyboard closing and focus return, matching while typing, added exercise rows, plan and workout history hints, mocked AI draft previews, mobile layout, and readable instructions when images fail. Autocomplete checks cover mouse/keyboard/touch selection, aliases, exact library names saved in plans and logs, stale responses, search errors, and IME composition. AI checks cover library-constrained choices, invalid and ambiguous exercises, legacy draft validation, and preserving saved plans when generation fails. MongoDB/Auth0/OpenRouter have not been tested against live services here.
+Build verification: **183 tests passed**, with Ruff passing as well. Chrome checks against the isolated demo verified photos loading only on demand, local-only requests, keyboard closing and focus return, matching while typing, added exercise rows, plan and workout history hints, mocked AI draft previews, mobile layout, and readable instructions when images fail. Autocomplete checks cover mouse/keyboard/touch selection, aliases, exact library names saved in plans and logs, stale responses, search errors, and IME composition. AI checks cover library-constrained choices, invalid and ambiguous exercises, legacy draft validation, and preserving saved plans when generation fails. MongoDB/Auth0/OpenRouter have not been tested against live services here.
 
 ## Development and deployment boundaries
 

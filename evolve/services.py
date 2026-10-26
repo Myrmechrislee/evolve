@@ -129,6 +129,69 @@ def resolve_occurrence(value):
     return plan, item, week
 
 
+def weekly_workouts(logs, week=None):
+    today = user_today()
+    try:
+        selected = date.fromisoformat(week) if week else today
+        # Leave room for the full week and both navigation links.
+        if not 2 <= selected.year <= 9998:
+            selected = today
+    except (TypeError, ValueError):
+        selected = today
+    start = selected - timedelta(days=selected.weekday())
+    end = start + timedelta(days=6)
+    days = {
+        (start + timedelta(days=offset)).isoformat(): {
+            "date": start + timedelta(days=offset),
+            "workouts": [],
+        }
+        for offset in range(7)
+    }
+    completed_keys = {
+        (log["plan_id"], log["session_id"], log["week"])
+        for log in logs
+        if log.get("planned")
+    }
+    for index, log in enumerate(logs):
+        if log["logged_date"] in days:
+            days[log["logged_date"]]["workouts"].append(
+                {
+                    "title": log["title"],
+                    "plan_name": log["plan_name"],
+                    "completed": True,
+                    "duration_minutes": log["duration_minutes"],
+                    "exercise_count": len(log["exercises"]),
+                    "log_id": log["_id"],
+                    "log_page": index // 20 + 1,
+                }
+            )
+    for plan in get_db().plans.find({"user_id": g.user["sub"]}).sort("updated_at", -1):
+        for item in occurrences(plan):
+            key = (plan["_id"], item["session"]["id"], item["week"])
+            if start <= item["date"] <= end and key not in completed_keys:
+                days[item["date"].isoformat()]["workouts"].append(
+                    {
+                        "title": item["session"]["title"],
+                        "plan_name": plan["name"],
+                        "completed": False,
+                        "exercise_count": len(item["session"]["exercises"]),
+                        "occurrence": item["key"],
+                    }
+                )
+    completed = sum(item["completed"] for day in days.values() for item in day["workouts"])
+    total = sum(len(day["workouts"]) for day in days.values())
+    return {
+        "start": start,
+        "end": end,
+        "previous": start - timedelta(weeks=1),
+        "next": start + timedelta(weeks=1),
+        "is_current": start <= today <= end,
+        "days": list(days.values()),
+        "completed": completed,
+        "planned": total - completed,
+    }
+
+
 def dashboard_stats():
     today = user_today()
     logs = list(

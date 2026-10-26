@@ -1,0 +1,148 @@
+.workout-draft-status {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.workout-draft-status[data-state="saved"] {
+  color: #527334;
+}
+
+.workout-draft-status[hidden] {
+  display: none;
+}
+
+.set-counter-heading {
+  flex-wrap: wrap;
+}
+
+.set-counter-heading h2 {
+  flex: 1;
+}
+
+.set-total {
+  padding: 6px 10px;
+  border: 1px solid #dce8cf;
+  border-radius: 6px;
+  background: var(--mint-soft);
+  color: #527334;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.set-counter-instructions {
+  margin-bottom: 7px;
+}
+
+.log-exercise-row {
+  grid-template-columns: minmax(150px, 2fr) minmax(140px, 1.1fr) minmax(75px, .8fr) minmax(75px, .8fr) 28px;
+}
+
+.exercise-set-field {
+  min-width: 0;
+}
+
+.exercise-set-field > label {
+  margin-bottom: 8px;
+}
+
+.set-counter {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #dfe5d8;
+  border-radius: 6px;
+  min-height: 43px;
+  background: #fff;
+}
+
+.set-counter input {
+  min-width: 0;
+  min-height: 41px;
+  border: 0;
+  border-radius: 0;
+  padding: 9px 4px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.set-counter input::-webkit-inner-spin-button,
+.set-counter input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.set-counter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 38px;
+  border: 0;
+  border-radius: 5px 0 0 5px;
+  background: #f4f7ee;
+  color: var(--forest);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.set-counter-button:last-child {
+  border-radius: 0 5px 5px 0;
+  background: var(--mint-soft);
+}
+
+.set-counter-button:not(:disabled):hover {
+  background: var(--mint);
+}
+
+.set-counter-button[hidden],
+.set-total[hidden] {
+  display: none;
+}
+
+.set-target {
+  display: block;
+  margin-top: 5px;
+}
+
+@media (max-width: 980px) {
+  .log-exercise-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 28px;
+    gap: 16px 12px;
+  }
+
+  .log-exercise-row > .exercise-name-field {
+    grid-column: 1 / 3;
+  }
+
+  .log-exercise-row > .remove-row {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .exercise-set-field {
+    grid-column: 1 / -1;
+  }
+
+  .set-counter {
+    max-width: 240px;
+  }
+
+  .set-counter-button {
+    flex-basis: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .set-total {
+    font-size: 10px;
+  }
+
+  .log-exercise-row {
+    gap: 14px 10px;
+  }
+
+  .exercise-set-field > label {
+    font-size: 10px;
+  }
+}

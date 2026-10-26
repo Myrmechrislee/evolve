@@ -1,7 +1,7 @@
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 
 from .db import get_db
-from .services import active_plan, dashboard_stats, progress
+from .services import active_plan, dashboard_stats, progress, weekly_workouts
 from .utils import ValidationError, login_required, user_today, utcnow
 from .validation import EQUIPMENT, EXPERIENCE, GOALS, parse_profile
 
@@ -17,8 +17,14 @@ def home():
 @login_required
 def dashboard():
     plan = active_plan()
+    stats = dashboard_stats()
     return render_template(
-        "dashboard.html", plan=plan, progress=progress(plan), stats=dashboard_stats(), active="dashboard"
+        "dashboard.html",
+        plan=plan,
+        progress=progress(plan),
+        stats=stats,
+        schedule=weekly_workouts(stats["logs"], request.args.get("week")),
+        active="dashboard",
     )
 
 

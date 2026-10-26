@@ -85,7 +85,7 @@ def create_app(config=None, *, mongo_client=None):
     from .db import get_db
     from .utils import is_pro, user_today
 
-    for blueprint in (auth.bp, main.bp, plans.bp, workouts.bp, coach.bp, exercises.bp):
+    for blueprint in (auth.bp, main.bp, plans.bp, workouts.bp, workouts.draft_bp, coach.bp, exercises.bp):
         app.register_blueprint(blueprint)
     app.add_template_filter(exercises.exercise_hint, "exercise_hint")
     app.before_request(auth.load_user)

@@ -30,6 +30,7 @@ def create_indexes(db):
         unique=True,
         partialFilterExpression={"planned": True},
     )
+    db.workout_drafts.create_index([("user_id", ASCENDING), ("occurrence", ASCENDING)], unique=True)
     db.conversations.create_index([("user_id", ASCENDING), ("plan_key", ASCENDING)], unique=True)
     db.ai_drafts.create_index("expires_at", expireAfterSeconds=0)
     db.ai_drafts.create_index("user_id")
