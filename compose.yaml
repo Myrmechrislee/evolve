@@ -6,7 +6,7 @@ services:
     env_file: .env
 
   mongo:
-    image: mongo:8
+    image: mongo
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
