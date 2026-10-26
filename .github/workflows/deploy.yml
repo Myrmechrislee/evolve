@@ -1,0 +1,62 @@
+name: Deploy to Alibaba ECS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-alibaba-ecs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Pull and rebuild on ECS
+        shell: bash
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+          ECS_SSH_KEY: ${{ secrets.ECS_SSH_KEY }}
+          ECS_KNOWN_HOSTS: ${{ secrets.ECS_KNOWN_HOSTS }}
+          ECS_PORT: ${{ vars.ECS_PORT || '22' }}
+        run: |
+          set -euo pipefail
+          : "${ECS_HOST:?Set the ECS_HOST repository secret}"
+          : "${ECS_USER:?Set the ECS_USER repository secret}"
+          : "${ECS_SSH_KEY:?Set the ECS_SSH_KEY repository secret}"
+          : "${ECS_KNOWN_HOSTS:?Set the ECS_KNOWN_HOSTS repository secret}"
+
+          umask 077
+          ssh_dir="$(mktemp -d)"
+          trap 'rm -rf "$ssh_dir"' EXIT
+          printf '%s\n' "$ECS_SSH_KEY" > "$ssh_dir/key"
+          printf '%s\n' "$ECS_KNOWN_HOSTS" > "$ssh_dir/known_hosts"
+
+          ssh -T \
+            -i "$ssh_dir/key" \
+            -p "$ECS_PORT" \
+            -l "$ECS_USER" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$ssh_dir/known_hosts" \
+            -o ConnectTimeout=15 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=3 \
+            -- "$ECS_HOST" 'bash -se' <<'DEPLOY'
+          set -euo pipefail
+          cd "$HOME/evolve"
+          if [[ "$(git branch --show-current)" != main ]]; then
+            echo 'The ECS checkout must be on the main branch.' >&2
+            exit 1
+          fi
+          GIT_TERMINAL_PROMPT=0 git pull --ff-only origin main
+          docker compose up -d --build
+          docker compose ps
+          DEPLOY
