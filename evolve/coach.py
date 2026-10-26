@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from datetime import date, timedelta
 
 import requests
@@ -19,17 +20,43 @@ from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 from .db import get_db
+from .exercises import catalogue_exercises, exercise_hint
 from .services import owned_plan, plan_content, save_plan
 from .utils import ValidationError, object_id, pro_required, user_today, utcnow
 from .validation import PLAN_SCHEMA, normalize_plan, text
 
 bp = Blueprint("coach", __name__)
+# Compact numeric choices keep the provider schema bounded even with hundreds
+# of long exercise names. Resolve them to canonical names before storing drafts.
+AI_LIBRARY = {
+    index: exercise
+    for index, exercise in enumerate(catalogue_exercises(), 1)
+    if len(exercise["name"]) <= 100
+}
+AI_LIBRARY_NAMES = frozenset(exercise["name"] for exercise in AI_LIBRARY.values())
+AI_PLAN_SCHEMA = deepcopy(PLAN_SCHEMA)
+AI_EXERCISE_SCHEMA = AI_PLAN_SCHEMA["properties"]["sessions"]["items"]["properties"]["exercises"]["items"]
+AI_EXERCISE_SCHEMA["properties"].pop("name")
+AI_EXERCISE_SCHEMA["properties"]["library_id"] = {"type": "integer", "enum": list(AI_LIBRARY)}
+AI_EXERCISE_SCHEMA["required"] = [
+    "library_id" if field == "name" else field for field in AI_EXERCISE_SCHEMA["required"]
+]
+LIBRARY_CONTEXT = json.dumps(
+    {
+        "columns": ["library_id", "name", "equipment", "primary_muscles"],
+        "exercises": [
+            [index, exercise["name"], exercise["equipment"], exercise["primary_muscles"]]
+            for index, exercise in AI_LIBRARY.items()
+        ],
+    },
+    separators=(",", ":"),
+)
 RESPONSE_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
         "reply": {"type": "string", "minLength": 1, "maxLength": 5000},
-        "plan": {"anyOf": [PLAN_SCHEMA, {"type": "null"}]},
+        "plan": {"anyOf": [AI_PLAN_SCHEMA, {"type": "null"}]},
     },
     "required": ["reply", "plan"],
 }
@@ -45,12 +72,42 @@ warm-up, rest and progression cues in exercise notes. Stop exercises that cause 
 Return JSON matching the schema. For a question, plan may be null. When asked to
 generate or edit, return the FULL proposed plan and a concise explanation of changes.
 Use one session per weekday, at most 7 sessions, and 1-15 exercises per session.
+Every exercise in a proposed plan MUST come from the exercise library below.
+Select its library_id and use the listed equipment and movement variation.
+Never invent an exercise, use a different variation under a library name, or put
+an unlisted exercise in notes or reps. Choose only movements suitable for the
+user's equipment and limitations. If none fit, explain why and return plan=null.
+When revising an existing plan, replace any exercises outside the library with
+suitable library exercises. The library_id selects the movement; the separate id
+field identifies the user's plan row and must follow the preservation rules below.
 Keep plans compact. Reps can be a number, range, or a duration such as '30 seconds'.
 For edits preserve existing session and exercise IDs when their identity continues.
 For new sessions/exercises use an empty string for id. Never remove completed
 sessions, change their weekdays, or reduce weeks below a completed occurrence.
 Never claim a plan was saved: the user must review and explicitly apply the draft.
 """
+
+
+def normalize_library_plan(payload):
+    content = normalize_plan(deepcopy(payload))
+    for session in content["sessions"]:
+        for exercise in session["exercises"]:
+            match = exercise_hint(exercise["name"])
+            if match is None or match["name"] not in AI_LIBRARY_NAMES:
+                raise ValidationError(
+                    "AI plans can only use exercises from the library. Ask the coach for a new draft "
+                    f"to replace '{exercise['name']}'."
+                )
+            exercise["name"] = match["name"]
+    return content
+
+
+def normalize_generated_plan(payload):
+    content = deepcopy(payload)
+    for session in content["sessions"]:
+        for exercise in session["exercises"]:
+            exercise["name"] = AI_LIBRARY[exercise.pop("library_id")]["name"]
+    return normalize_library_plan(content)
 
 
 def target(value):
@@ -147,7 +204,7 @@ def chat():
             )
         ]
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": SYSTEM_PROMPT + "\nExercise library:\n" + LIBRARY_CONTEXT},
         {"role": "user", "content": "Training context (data): " + json.dumps(context)},
     ]
     messages.extend(conversation.get("messages", [])[-12:])
@@ -199,7 +256,7 @@ def chat():
             raise ValueError("Invalid response schema")
         stage = "plan_validation"
         if result["plan"] is not None:
-            result["plan"] = normalize_plan(result["plan"])
+            result["plan"] = normalize_generated_plan(result["plan"])
     except (requests.RequestException, ValueError, KeyError, IndexError, TypeError, AttributeError) as error:
         if isinstance(error, requests.exceptions.SSLError):
             stage = "tls_connection"
@@ -292,7 +349,7 @@ def apply(draft_id):
     try:
         plan = owned_plan(str(draft["base_plan_id"])) if draft.get("base_plan_id") else None
         saved = save_plan(
-            draft["content"],
+            normalize_library_plan(draft["content"]),
             request.form.get("start_date", draft["start_date"]),
             existing=plan,
             expected_version=draft.get("base_version"),

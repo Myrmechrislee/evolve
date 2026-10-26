@@ -1,6 +1,6 @@
 # EVOLVE · Workout tracker
 
-A development Flask app for building a workout routine, logging training, and following progress. Responsive Jinja templates, plain JavaScript, and custom CSS; no frontend build step. Optional exercise videos stream from wger when opened.
+A development Flask app for building a workout routine, logging training, and following progress. Responsive Jinja templates, plain JavaScript, and custom CSS; no frontend build step. Exercise hints use locally served photos and written instructions.
 
 ## Features
 
@@ -10,7 +10,7 @@ A development Flask app for building a workout routine, logging training, and fo
 - Free and Pro users can create, edit, follow, and delete plans manually. The editor supports 1–52 weeks, up to seven weekly sessions, and exercises with sets, reps or time, rest, and notes.
 - Pro members can generate and revise complete plans by chatting with a ChatGPT model through OpenRouter. Proposed changes remain drafts until explicitly applied. Manual editing is always available.
 - Planned or freestyle workout logging with actual sets, reps, kg, duration, effort, and notes. Logs include a historical snapshot, so later exercise edits do not rewrite previous training.
-- Exercise form videos for matching movements, available to Free and Pro users in plans, the dashboard, workout logging/history, and AI draft previews.
+- Exercise photos and step-by-step instructions for matching movements, available to Free and Pro users in plans, the dashboard, workout logging/history, and AI draft previews.
 - Dashboard and progress page: completed planned occurrences, weekly frequency, total workouts, 30-day training time, and weight volume.
 - CSRF protection, server-side ownership / Pro checks, signed HttpOnly session cookies, OIDC state / nonce / PKCE, optimistic plan version checks, input validation, duplicate-log indexes, and hourly AI quotas.
 
@@ -115,17 +115,23 @@ The user must opt in before each page's first chat request. The server sends the
 
 Responses are schema-validated and displayed as plain text. AI never directly changes a saved plan. A draft expires after seven days, and an explicit **Use this workout plan** or **Apply changes to plan** action saves it. Editing an existing plan uses its version from the moment the draft was generated; stale drafts get a conflict instead of overwriting newer edits. Provider timeouts or malformed / truncated replies leave saved plans unchanged. Attempted provider requests count against a fixed UTC-hour quota, including failed calls.
 
-## Exercise video hints
+AI-generated and AI-revised plans use only exercises from the bundled library. The coach receives the library's names, equipment and target muscles, and its structured response must select a valid library entry for each exercise. The server resolves those choices to exact library names before creating a draft, so every exercise has photos and instructions. Applying a draft validates library membership again; older drafts containing unknown or ambiguous exercises must be regenerated. Manual editing and logging still support custom exercise names.
 
-Exercises with a matching video show **▷ Watch form**. Open it for a video player with playback controls, creator attribution, license, and a link to the original clip. Clips load only when opened and stop when the viewer closes. Exercise names entered in the editor or workout logger are checked automatically as you type; matching also supports known aliases, capitalization, punctuation, and common plurals. Equipment and movement variations stay distinct. Exercises without a match remain editable and loggable.
+## Exercise form hints
 
-The app includes a small, local snapshot of [wger's public exercise database](https://wger.de/api/v2/exerciseinfo/): **46 exercises with videos**, retrieved on October 20, 2026. Name matching needs no API key or live provider request. Video playback requires access to `wger.de`; some original clips use HEVC/QuickTime and require browser codec support. A playback failure provides an original-video link without affecting the workout form. This catalogue covers only exercises that actually have videos; it does not claim a video for every exercise in wger.
+Exercises with a matching library entry show **View form**. Open it for two form photos, numbered instructions, target muscles, equipment, and a source link. Photos load only when opened and are cached by the browser; instructions remain readable if a photo fails. Exercise names entered in the editor or workout logger are checked automatically as you type; matching also supports known aliases, capitalization, punctuation, and common plurals. Equipment and movement variations stay distinct. Exercises without a match remain editable and loggable.
 
-Source names, aliases, authors, licenses, and original video URLs are recorded in `evolve/data/exercise_demos.json`. Media is streamed unmodified, and its creator and license are displayed in the viewer. To refresh the catalogue from wger (then restart Flask):
+Exercise-name fields in the plan editor and workout logger suggest library exercises after two characters. Suggestions show equipment and target muscles, and also match common aliases such as **RDL**. Click a suggestion or use the arrow keys and Enter to fill in its exact library name. Escape dismisses suggestions; custom names are still supported.
+
+The app bundles **868 exercises** from [Free Exercise DB](https://github.com/yuhonas/free-exercise-db), a public-domain library with 800+ exercises. Eight incomplete source records are excluded. Instructions and compressed WebP photos are served by EVOLVE, with no API key or live third-party connection needed. The original license is kept in `evolve/data/free-exercise-db-LICENSE.txt`, and the viewer credits the source.
+
+Source metadata and a pinned commit are recorded in `evolve/data/exercise_hints.json`; photos live in `evolve/static/exercise-images/`. To reproduce the import after installing `requirements-dev.txt` (then restart Flask):
 
 ```bash
-python scripts/refresh_exercise_demos.py
+python scripts/refresh_exercise_hints.py
 ```
+
+To import a newer version, add `--revision FULL_COMMIT_SHA`. See `evolve/data/README.md` for import details. Pillow is needed only for imports, not to run the app.
 
 ## How progress is calculated
 
@@ -162,6 +168,8 @@ docker compose up --build
 ```
 
 Compose includes independent `web`, `mongo`, and `caddy` services, with no startup dependencies. Start an individual service with `docker compose up -d mongo`, `docker compose up -d web`, or `docker compose up -d caddy`.
+
+After changing application code or exercise data, rebuild the running web service with `docker compose up -d --build --no-deps web`. Source files are copied into the image at build time; restarting the container alone keeps the previous code.
 
 The web container reads `MONGO_URL` from `.env`. Set it to `mongodb://mongo:27017` to use the included MongoDB service, or keep your external MongoDB / Atlas URL. When running Flask directly on the host with the included database, use `mongodb://localhost:27017`.
 
@@ -211,12 +219,12 @@ The workflow uses the existing `.env` on ECS. If the checkout lives elsewhere, u
 ```bash
 pip install -r requirements-dev.txt
 pytest
-ruff check evolve tests app.py demo.py
+ruff check evolve tests scripts app.py demo.py
 ```
 
-Tests use an isolated in-memory MongoDB substitute and mocked Auth0 / OpenRouter responses. They cover onboarding, ownership, server-side Pro checks, plan CRUD and stale writes, actual workout logging and duplicate protection, progress, AI consent / validation / drafts / expiry / rate limits, CSRF, and exercise video matching, attribution, and access controls. No real API key, Auth0 tenant, or MongoDB server is required by the test suite. Live integrations require your own credentials.
+Tests use an isolated in-memory MongoDB substitute and mocked Auth0 / OpenRouter responses. They cover onboarding, ownership, server-side Pro checks, plan CRUD and stale writes, actual workout logging and duplicate protection, progress, AI consent / validation / drafts / expiry / rate limits, CSRF, and exercise hint matching, local photos, import validation, caching, and access controls. No real API key, Auth0 tenant, or MongoDB server is required by the test suite. Live integrations require your own credentials.
 
-Build verification: **106 tests passed**, with Ruff passing as well. Chrome checks against the isolated demo verified real MP4 playback, on-demand media loading, viewer cleanup, exercise matching while typing, unmatched-name cleanup, mobile layout, CSRF-protected plan/workout submissions, history hints, mocked AI draft previews, and unavailable-video fallback. MongoDB/Auth0/OpenRouter have not been tested against live services here.
+Build verification: **145 tests passed**, with Ruff passing as well. Chrome checks against the isolated demo verified photos loading only on demand, local-only requests, keyboard closing and focus return, matching while typing, added exercise rows, plan and workout history hints, mocked AI draft previews, mobile layout, and readable instructions when images fail. Autocomplete checks cover mouse/keyboard/touch selection, aliases, exact library names saved in plans and logs, stale responses, search errors, and IME composition. AI checks cover library-constrained choices, invalid and ambiguous exercises, legacy draft validation, and preserving saved plans when generation fails. MongoDB/Auth0/OpenRouter have not been tested against live services here.
 
 ## Development and deployment boundaries
 
@@ -242,11 +250,11 @@ evolve/main.py          Homepage, profile, dashboard, progress
 evolve/plans.py         Manual plan management
 evolve/workouts.py      Planned/freestyle logging and history
 evolve/exercises.py     Local exercise-name matching and hint lookup API
-evolve/data/            Attributed wger exercise video catalogue
+evolve/data/            Free Exercise DB instructions, metadata, and license
 evolve/coach.py         Pro AI integration, quotas, reviewable drafts
 evolve/cli.py           DB initialization and development Pro grants
 evolve/templates/      Jinja pages and shared components
-evolve/static/         CSS, vanilla JS, and favicon
+evolve/static/         CSS, vanilla JS, favicon, and local exercise photos
 tests/                Integration and validation tests
 scripts/              Exercise catalogue refresh utility
 ```

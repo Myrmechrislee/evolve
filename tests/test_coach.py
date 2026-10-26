@@ -1,18 +1,42 @@
 import json
+from copy import deepcopy
 from datetime import timedelta
 from unittest.mock import Mock
 
 import pytest
 import requests
 
+from evolve.coach import AI_LIBRARY, AI_LIBRARY_NAMES
+from evolve.exercises import exercise_hint
 from evolve.utils import utcnow
+from evolve.validation import EXERCISE_SCHEMA
+
+
+@pytest.fixture
+def payload(payload):
+    # AI proposals use the library; manual-plan tests retain their custom names.
+    payload["sessions"][0]["exercises"][0]["name"] = "Goblet Squat"
+    payload["sessions"][0]["exercises"][1]["name"] = "One-Arm Dumbbell Row"
+    return payload
+
+
+def provider_plan(payload):
+    if payload is None:
+        return None
+    content = deepcopy(payload)
+    identifiers = {exercise["name"]: identifier for identifier, exercise in AI_LIBRARY.items()}
+    for session in content["sessions"]:
+        for exercise in session["exercises"]:
+            match = exercise_hint(exercise.pop("name"))
+            exercise["library_id"] = identifiers[match["name"]] if match else 0
+    return content
 
 
 def fake_response(monkeypatch, payload, *, reply="Here is your proposed routine."):
     response = Mock()
     response.json.return_value = {
         "choices": [
-            {"finish_reason": "stop", "message": {"content": json.dumps({"reply": reply, "plan": payload})}}
+            {"finish_reason": "stop", "message": {"content": json.dumps({"reply": reply, "plan": provider_plan(payload)})}}
         ]
     }
     post = Mock(return_value=response)
@@ -51,6 +75,12 @@ def test_ai_draft_review_then_apply_and_idempotency(client, db, make_user, sign_
     response = client.post("/api/coach/chat", json={"message": "Build a 4 week plan", "share_profile": True})
     assert response.status_code == 200
     result = response.get_json()
+    exercises = result["draft"]["content"]["sessions"][0]["exercises"]
+    assert {exercise["name"] for exercise in exercises} <= AI_LIBRARY_NAMES
+    assert all("library_id" not in exercise for exercise in exercises)
+    assert [exercise["id"] for exercise in exercises] == [
+        exercise["id"] for exercise in payload["sessions"][0]["exercises"]
+    ]
     assert db.plans.count_documents({}) == 0
     draft = db.ai_drafts.find_one({})
     assert draft["status"] == "pending"
@@ -67,6 +97,124 @@ def test_ai_draft_review_then_apply_and_idempotency(client, db, make_user, sign_
     assert db.plans.count_documents({}) == 1
     assert db.ai_drafts.find_one({})["status"] == "applied"
     assert db.conversations.find_one({})["messages"][0]["content"] == "Build a 4 week plan"
+
+
+def test_ai_request_contains_the_library_and_constrains_choices(
+    client, make_user, sign_in, payload, monkeypatch
+):
+    sign_in(make_user(pro=True))
+    post = fake_response(monkeypatch, payload)
+    assert client.post("/api/coach/chat", json={"message": "Make a plan", "share_profile": True}).status_code == 200
+    outbound = post.call_args.kwargs["json"]
+    prompt = outbound["messages"][0]["content"]
+    library = json.loads(prompt.split("\nExercise library:\n", 1)[1])
+    assert library["columns"] == ["library_id", "name", "equipment", "primary_muscles"]
+    assert {row[1] for row in library["exercises"]} == AI_LIBRARY_NAMES
+    assert {row[0] for row in library["exercises"]} == set(AI_LIBRARY)
+    schema = outbound["response_format"]["json_schema"]["schema"]
+    exercise_schema = schema["properties"]["plan"]["anyOf"][0]["properties"]["sessions"]["items"]["properties"]["exercises"]["items"]
+    assert exercise_schema["properties"]["library_id"] == {"type": "integer", "enum": list(AI_LIBRARY)}
+    assert "library_id" in exercise_schema["required"]
+    assert "name" not in exercise_schema["properties"]
+    assert "library_id" not in EXERCISE_SCHEMA["properties"]
+    assert "enum" not in EXERCISE_SCHEMA["properties"]["name"]
+
+
+@pytest.mark.parametrize("identifier", [-1, 0, 999999, 1.5, "1", None, True])
+def test_ai_rejects_invalid_library_choices_before_creating_a_draft(
+    client, db, make_user, sign_in, payload, monkeypatch, identifier
+):
+    sign_in(make_user(pro=True))
+    post = fake_response(monkeypatch, payload)
+    result = json.loads(post.return_value.json.return_value["choices"][0]["message"]["content"])
+    result["plan"]["sessions"][0]["exercises"][0]["library_id"] = identifier
+    post.return_value.json.return_value["choices"][0]["message"]["content"] = json.dumps(result)
+    response = client.post("/api/coach/chat", json={"message": "Make a plan", "share_profile": True})
+    assert response.status_code == 502
+    assert db.ai_drafts.count_documents({}) == db.plans.count_documents({}) == db.conversations.count_documents({}) == 0
+    assert db.ai_usage.find_one({})["count"] == 1
+
+
+def test_ai_cannot_bypass_library_choices_with_a_freeform_name(
+    client, db, make_user, sign_in, payload, monkeypatch
+):
+    sign_in(make_user(pro=True))
+    post = fake_response(monkeypatch, payload)
+    result = json.loads(post.return_value.json.return_value["choices"][0]["message"]["content"])
+    exercise = result["plan"]["sessions"][0]["exercises"][0]
+    exercise["name"] = "Invented exercise"
+    post.return_value.json.return_value["choices"][0]["message"]["content"] = json.dumps(result)
+    response = client.post("/api/coach/chat", json={"message": "Make a plan", "share_profile": True})
+    assert response.status_code == 502
+    assert db.ai_drafts.count_documents({}) == db.plans.count_documents({}) == 0
+
+
+@pytest.mark.parametrize("name", ["Invented exercise", "Dumbbell row", "Dumbbell goblet squat"])
+def test_older_drafts_cannot_save_unknown_or_ambiguous_exercises(
+    client, db, make_user, sign_in, payload, monkeypatch, name
+):
+    sign_in(make_user(pro=True))
+    fake_response(monkeypatch, payload)
+    response = client.post("/api/coach/chat", json={"message": "Make a plan", "share_profile": True})
+    draft_id = response.json["draft"]["id"]
+    db.ai_drafts.update_one({}, {"$set": {"content.sessions.0.exercises.0.name": name}})
+    response = client.post(f"/coach/drafts/{draft_id}/apply")
+    assert response.status_code == 422
+    assert b"only use exercises from the library" in response.data
+    assert db.plans.count_documents({}) == 0
+    assert db.ai_drafts.find_one({})["status"] == "pending"
+
+
+def test_older_draft_aliases_are_saved_as_exact_library_names(
+    client, db, make_user, sign_in, payload, monkeypatch
+):
+    sign_in(make_user(pro=True))
+    fake_response(monkeypatch, payload)
+    response = client.post("/api/coach/chat", json={"message": "Make a plan", "share_profile": True})
+    draft_id = response.json["draft"]["id"]
+    db.ai_drafts.update_one({}, {"$set": {"content.sessions.0.exercises.0.name": "RDL"}})
+    assert client.post(f"/coach/drafts/{draft_id}/apply").status_code == 302
+    exercises = db.plans.find_one({})["sessions"][0]["exercises"]
+    assert exercises[0]["name"] == "Romanian Deadlift"
+    assert {exercise["name"] for exercise in exercises} <= AI_LIBRARY_NAMES
+
+
+def test_ai_can_replace_custom_exercises_when_revising_a_manual_plan(
+    client, db, make_user, make_plan, sign_in, payload, monkeypatch
+):
+    user = make_user(pro=True)
+    custom_plan = deepcopy(payload)
+    custom_plan["sessions"][0]["exercises"][0]["name"] = "My custom movement"
+    plan = make_plan(user, content=custom_plan)
+    sign_in(user)
+    fake_response(monkeypatch, payload)
+    response = client.post(
+        "/api/coach/chat", json={"message": "Use library exercises", "share_profile": True, "plan_id": str(plan["_id"])}
+    )
+    assert response.status_code == 200
+    assert db.plans.find_one({})["sessions"][0]["exercises"][0]["name"] == "My custom movement"
+    assert client.post(f"/coach/drafts/{response.json['draft']['id']}/apply").status_code == 302
+    assert db.plans.find_one({})["sessions"][0]["exercises"][0]["name"] == "Goblet Squat"
+
+
+def test_invalid_ai_revision_preserves_the_existing_plan_and_draft(
+    client, db, make_user, make_plan, sign_in, payload, monkeypatch
+):
+    user = make_user(pro=True)
+    plan = make_plan(user)
+    sign_in(user)
+    fake_response(monkeypatch, payload)
+    body = {"message": "Update my plan", "share_profile": True, "plan_id": str(plan["_id"])}
+    assert client.post("/api/coach/chat", json=body).status_code == 200
+    previous_draft = db.ai_drafts.find_one({})
+    previous_conversation = db.conversations.find_one({})
+    payload["sessions"][0]["exercises"][0]["name"] = "Invented exercise"
+    fake_response(monkeypatch, payload)
+    assert client.post("/api/coach/chat", json=body).status_code == 502
+    assert db.ai_drafts.count_documents({}) == 1
+    assert db.ai_drafts.find_one({}) == previous_draft
+    assert db.conversations.find_one({}) == previous_conversation
+    assert db.plans.find_one({})["version"] == plan["version"]
 
 
 def test_ai_edits_existing_plan_without_overwriting_early(

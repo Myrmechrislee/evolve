@@ -1,5 +1,6 @@
 """EVOLVE application factory."""
 
+import mimetypes
 import os
 from datetime import timedelta
 from threading import Lock
@@ -19,6 +20,8 @@ csrf = CSRFProtect()
 def create_app(config=None, *, mongo_client=None):
     load_dotenv()
     app = Flask(__name__)
+    # Minimal Docker images may lack an OS MIME database for WebP photos.
+    mimetypes.add_type("image/webp", ".webp")
     production = os.getenv("APP_ENV", "development") == "production"
     app.config.from_mapping(
         SECRET_KEY=os.getenv("SECRET_KEY"),
@@ -84,7 +87,7 @@ def create_app(config=None, *, mongo_client=None):
 
     for blueprint in (auth.bp, main.bp, plans.bp, workouts.bp, coach.bp, exercises.bp):
         app.register_blueprint(blueprint)
-    app.add_template_filter(exercises.exercise_demo, "exercise_demo")
+    app.add_template_filter(exercises.exercise_hint, "exercise_hint")
     app.before_request(auth.load_user)
     cli.init_app(app)
 
@@ -108,10 +111,12 @@ def create_app(config=None, *, mongo_client=None):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data:; media-src 'self' https://wger.de; connect-src 'self'; font-src 'self'; "
+            "img-src 'self' data:; media-src 'self'; connect-src 'self'; font-src 'self'; "
             "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         )
-        if g.get("user") or request.path.startswith(("/auth/", "/api/")):
+        if request.endpoint == "static" and request.view_args.get("filename", "").startswith("exercise-images/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif g.get("user") or request.path.startswith(("/auth/", "/api/")):
             response.headers["Cache-Control"] = "no-store"
         if app.config["SESSION_COOKIE_SECURE"]:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"

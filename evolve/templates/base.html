@@ -8,9 +8,10 @@
   <title>{% block title %}Your next stronger self{% endblock %} · EVOLVE</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  {% if current_user %}<link rel="stylesheet" href="{{ url_for('static', filename='exercise-demos.css') }}">{% endif %}
+  {% if current_user %}<link rel="stylesheet" href="{{ url_for('static', filename='exercise-hints.css') }}">{% endif %}
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
-  {% if current_user %}<script src="{{ url_for('static', filename='exercise-demos.js') }}" defer></script>{% endif %}
+  {% if current_user %}<script src="{{ url_for('static', filename='exercise-hints.js') }}" defer></script>{% endif %}
+  {% if current_user %}<script src="{{ url_for('static', filename='exercise-autocomplete.js') }}" defer></script>{% endif %}
   {% block scripts %}{% endblock %}
 </head>
 <body class="{% if current_user and not public_page %}app-layout{% else %}public-layout{% endif %}">
@@ -41,12 +42,13 @@
 {% block content %}{% endblock %}
 </main>
 {% if current_user %}
-<dialog class="exercise-demo-dialog" id="exercise-demo-dialog" aria-labelledby="exercise-demo-title">
-  <div class="exercise-demo-heading"><div><span class="eyebrow">EXERCISE FORM</span><h2 id="exercise-demo-title"></h2></div><button type="button" class="icon-button" data-close-demo aria-label="Close exercise video">×</button></div>
-  <video controls playsinline preload="none" aria-label="Exercise form demonstration"></video>
-  <p class="exercise-demo-error hidden" role="status">This clip could not play here. Try opening the original video below.</p>
-  <div class="exercise-demo-links"><a class="text-link" data-original-video target="_blank" rel="noopener noreferrer">Open original video ↗</a><a class="subtle-link" data-demo-source target="_blank" rel="noopener noreferrer">wger database ↗</a></div>
-  <p class="exercise-demo-credit">Video by <span data-demo-author></span> · <a data-demo-license target="_blank" rel="noopener noreferrer"></a></p>
+<dialog class="exercise-hint-dialog" id="exercise-hint-dialog" aria-labelledby="exercise-hint-title">
+  <div class="exercise-hint-heading"><div><span class="eyebrow">EXERCISE FORM</span><h2 id="exercise-hint-title"></h2></div><button type="button" class="icon-button" data-close-hint aria-label="Close exercise instructions" autofocus>×</button></div>
+  <p class="exercise-hint-meta" data-hint-meta></p>
+  <div class="exercise-hint-images" data-hint-images></div>
+  <p class="exercise-hint-error hidden" role="status">An image could not load. You can still follow the instructions below.</p>
+  <section class="exercise-hint-instructions" aria-labelledby="exercise-hint-steps-title"><h3 id="exercise-hint-steps-title">How to do it</h3><ol data-hint-instructions></ol></section>
+  <p class="exercise-hint-credit">Photos and instructions from <a data-hint-source target="_blank" rel="noopener noreferrer">Free Exercise DB ↗</a> · <a href="https://unlicense.org/" target="_blank" rel="noopener noreferrer">The Unlicense</a></p>
 </dialog>
 {% endif %}
 {% if current_user and not public_page %}<footer class="workspace-footer"><span>A little progress, every day.</span><span>Made for your momentum. <strong>EVOLVE</strong></span></footer></div>{% else %}<footer class="public-footer">{{ brand() }}<span>A little progress, every day.</span><span>Plan. Move. Repeat.</span></footer>{% endif %}

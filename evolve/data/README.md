@@ -1,21 +1,30 @@
-The exercise_demos.json catalogue is a filtered snapshot of the public wger API:
-https://wger.de/api/v2/exerciseinfo/
+The exercise_hints.json catalogue is imported from Free Exercise DB:
+https://github.com/yuhonas/free-exercise-db
 
-Only English entries with real video media are retained. The retrieved_at field
-records the fetch date. The snapshot retains source names and aliases, records
-their authors and licenses, and selects one original video URL per exercise,
-preferring H.264/MP4 and then smaller files. Video files are neither copied nor
-modified. Videos in this snapshot are licensed CC BY-SA 4.0 by their credited
-authors; source name metadata also includes CC BY-SA 3.0 entries. Each entry
-records its own author and license URL. Keep these credits when reusing data.
+The snapshot records its full source commit, retrieval date, source links and
+license. Of 876 source exercises, 868 have both photos and written instructions;
+eight incomplete entries are excluded. Instructions, muscle groups, equipment,
+difficulty and category are retained from the source. Equivalent-name aliases
+added by EVOLVE live separately in evolve/exercises.py. Ambiguous names and
+different equipment or movement variations do not fall back to another exercise.
 
-The viewer displays the selected video's creator, license, original-video link,
-and database source. Equivalent-name aliases added by EVOLVE live separately in
-evolve/exercises.py. No exercise descriptions or instructions are redistributed.
+The source dataset is released under The Unlicense. Its original license text
+is retained in free-exercise-db-LICENSE.txt. The viewer credits Free Exercise DB
+and links to the exercise's source record and The Unlicense.
 
-Refresh from the project root with:
-    python scripts/refresh_exercise_demos.py
+Photos are resized to fit within 480 × 480 pixels and encoded as WebP (quality
+75) in evolve/static/exercise-images/. Content hashes in filenames allow long
+browser caching and deduplicate identical photos. All images and instructions
+are served locally: no API key, provider request or video playback is needed.
+Only opening a hint requests its photos; written instructions display immediately.
 
-wger API documentation: https://wger.readthedocs.io/en/latest/api/api.html
-CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
-CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+Refresh from the project root after installing requirements-dev.txt, then restart
+Flask to clear the in-memory name index:
+
+    python scripts/refresh_exercise_hints.py
+
+The importer defaults to the pinned source commit. To update it, supply a full
+commit SHA with --revision. To use an already downloaded GitHub source tarball,
+add --archive /path/to/source.tar.gz (and its --revision if it differs).
+The existing catalogue is kept if source validation or image conversion fails.
+Old, unused photos are kept so previously rendered pages continue to work.

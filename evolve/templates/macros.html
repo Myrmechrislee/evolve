@@ -23,8 +23,8 @@
 {% macro csrf_field() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
 
 {% macro exercise_hint(name) -%}
-{% set demo = name|exercise_demo %}
-{% if demo %}<button type="button" class="exercise-demo-button" data-exercise-demo="{{ demo|tojson|forceescape }}" aria-label="Watch form for {{ name }}" aria-haspopup="dialog">▷ Watch form</button>{% endif %}
+{% set hint = name|exercise_hint %}
+{% if hint %}<button type="button" class="exercise-hint-button" data-exercise-hint-detail="{{ hint|tojson|forceescape }}" aria-label="View form for {{ name }}" aria-haspopup="dialog">View form</button>{% endif %}
 {%- endmacro %}
 
 {% macro brand() %}<a class="brand" href="{{ url_for('main.home') }}" aria-label="EVOLVE homepage"><svg width="27" height="30" viewBox="0 0 27 30" fill="none" aria-hidden="true"><path d="M24 3H3v24h21M3 14h16" stroke="currentColor" stroke-width="6"/></svg><span>evolve<span class="brand-dot">.</span></span></a>{% endmacro %}
