@@ -1,11 +1,15 @@
 import re
 
+import pytest
 from flask import url_for
 
 
 def test_csrf_protects_forms_and_json(app, client, make_user, sign_in, profile):
     app.config["WTF_CSRF_ENABLED"] = True
     sign_in(make_user(pro=True))
+    assert client.post("/auth/logout").status_code == 400
+    with client.session_transaction() as session:
+        assert "sub" in session
     assert client.post("/profile", data=profile).status_code == 400
     assert client.post("/api/coach/chat", json={}).status_code == 400
     html = client.get("/profile").get_data(as_text=True)
@@ -15,6 +19,28 @@ def test_csrf_protects_forms_and_json(app, client, make_user, sign_in, profile):
         client.post("/api/coach/chat", json={"message": "test"}, headers={"X-CSRFToken": token}).status_code
         == 400
     )  # consent is still required
+
+
+@pytest.mark.parametrize("auth0_domain", ["", "tenant.auth0.com"])
+def test_logout_form_policy_allows_only_self_and_configured_auth0(
+    app, client, make_user, sign_in, auth0_domain
+):
+    app.config["AUTH0_DOMAIN"] = auth0_domain
+    app.config["AUTH0_CLIENT_ID"] = "test-client"
+    app.config["WTF_CSRF_ENABLED"] = True
+    sign_in(make_user())
+    dashboard = client.get("/dashboard")
+    token = re.search(r'<meta name="csrf-token" content="([^"]+)"', dashboard.get_data(as_text=True)).group(1)
+    logout = client.post("/auth/logout", data={"csrf_token": token})
+    assert logout.status_code == 302
+    for response in (dashboard, logout, client.get("/")):
+        directives = response.headers["Content-Security-Policy"].split("; ")
+        form_action = next(directive for directive in directives if directive.startswith("form-action "))
+        expected = "form-action 'self'" + (f" https://{auth0_domain}" if auth0_domain else "")
+        assert form_action == expected
+        assert "default-src 'self'" in directives
+    with client.session_transaction() as session:
+        assert "sub" not in session
 
 
 def test_security_headers_and_xss_escaping(client, db, make_user, sign_in):

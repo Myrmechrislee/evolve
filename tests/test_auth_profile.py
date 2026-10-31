@@ -1,4 +1,5 @@
 from unittest.mock import Mock
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from authlib.integrations.base_client.errors import MismatchingStateError, OAuthError
@@ -98,6 +99,42 @@ def test_auth_tls_failure_returns_service_unavailable(client, monkeypatch, path)
     assert b"Cannot connect to the sign-in service" in response.data
     with client.session_transaction() as session:
         assert "sub" not in session
+
+
+def test_logout_without_auth0_returns_to_public_homepage(client, make_user, sign_in):
+    sign_in(make_user())
+    response = client.post("/auth/logout", follow_redirects=True)
+    assert response.status_code == 200
+    assert response.request.path == "/"
+    assert b">Log in</a>" in response.data
+    with client.session_transaction() as session:
+        assert "sub" not in session
+    assert client.get("/dashboard").location.endswith("/auth/login")
+
+
+def test_logout_through_auth0_uses_configured_homepage(app, client, make_user):
+    app.config.update(
+        AUTH0_DOMAIN="tenant.auth0.com",
+        AUTH0_CLIENT_ID="test-client",
+        APP_BASE_URL="https://workouts.example.test",
+    )
+    user = make_user()
+    with client.session_transaction(base_url="http://attacker.example") as session:
+        session["sub"] = user["sub"]
+        session["temporary_oauth_state"] = "clear-on-logout"
+    response = client.post("/auth/logout", base_url="http://attacker.example")
+    assert response.status_code == 302
+    destination = urlsplit(response.location)
+    assert destination.scheme == "https"
+    assert destination.netloc == "tenant.auth0.com"
+    assert destination.path == "/v2/logout"
+    assert parse_qs(destination.query) == {
+        "client_id": ["test-client"],
+        "returnTo": ["https://workouts.example.test"],
+    }
+    # Inspect the cookie for the host used by the logout request.
+    with client.session_transaction(base_url="http://attacker.example") as session:
+        assert not session
 
 
 def test_onboarding_and_profile_update(client, db, make_user, sign_in, profile):

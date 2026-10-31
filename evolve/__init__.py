@@ -109,10 +109,14 @@ def create_app(config=None, *, mongo_client=None):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        form_action = "'self'"
+        if app.config["AUTH0_DOMAIN"]:
+            # Chrome also checks form-action on the POST logout's redirect to Auth0.
+            form_action += f" https://{app.config['AUTH0_DOMAIN']}"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
             "img-src 'self' data:; media-src 'self'; connect-src 'self'; font-src 'self'; "
-            "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+            f"frame-ancestors 'none'; base-uri 'self'; form-action {form_action}"
         )
         if request.endpoint == "static" and request.view_args.get("filename", "").startswith("exercise-images/"):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
