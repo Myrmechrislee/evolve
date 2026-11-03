@@ -25,6 +25,7 @@
   {% endfor %}
   {% if is_pro %}<a class="nav-link {% if active == 'coach' %}active{% endif %}" href="{{ url_for('coach.index') }}">{{ icon('spark') }}AI coach<span class="badge pro">PRO</span></a>{% endif %}
   <a class="nav-link {% if active == 'profile' %}active{% endif %}" href="{{ url_for('main.profile') }}">{{ icon('user') }}Training profile</a>
+  {% if is_admin %}<a class="nav-link {% if active == 'admin' %}active{% endif %}" href="{{ url_for('admin.index') }}">{{ icon('lock') }}Admin dashboard</a>{% endif %}
   </nav>
   <div class="sidebar-bottom">
   <div class="sidebar-note">{{ icon('bolt') }}<strong>Consistency looks good on you.</strong><span>One session at a time.</span></div>
@@ -32,7 +33,7 @@
   </div>
 </aside>
 <div class="workspace">
-  <header class="topbar"><button class="icon-button mobile-menu" data-menu aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar">{{ icon('menu') }}</button><div class="breadcrumb">Your training <span>/</span> <strong>{{ {'dashboard':'Overview','plans':'Workout plans','workouts':'Workout log','progress':'Progress','coach':'AI coach','profile':'Training profile'}.get(active, 'Workspace') }}</strong></div><div class="topbar-right">{{ icon('calendar') }}<span>{{ today.strftime('%a, %b %d') }}</span><span class="topbar-divider"></span><span class="badge {{ 'pro-light' if is_pro else 'neutral' }}">{{ 'EVOLVE PRO' if is_pro else 'FREE PLAN' }}</span></div></header>
+  <header class="topbar"><button class="icon-button mobile-menu" data-menu aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar">{{ icon('menu') }}</button><div class="breadcrumb">{{ 'Administration' if active == 'admin' else 'Your training' }} <span>/</span> <strong>{{ {'dashboard':'Overview','plans':'Workout plans','workouts':'Workout log','progress':'Progress','coach':'AI coach','profile':'Training profile','admin':'Admin dashboard'}.get(active, 'Workspace') }}</strong></div><div class="topbar-right">{{ icon('calendar') }}<span>{{ today.strftime('%a, %b %d') }}</span><span class="topbar-divider"></span><span class="badge {{ 'pro-light' if is_pro else 'neutral' }}">{{ 'EVOLVE PRO' if is_pro else 'FREE PLAN' }}</span></div></header>
 {% else %}
 <header class="public-header">{{ brand() }}<nav aria-label="Main navigation"><a href="{{ url_for('main.home') }}#how-it-works">How it works</a><a href="{{ url_for('main.home') }}#membership">Membership</a>{% if current_user %}<a class="button small-button" href="{{ url_for('main.dashboard') }}">Your dashboard {{ icon('arrow') }}</a>{% elif config.get('DEMO_MODE') %}<a class="button small-button" href="/demo">Open demo {{ icon('arrow') }}</a>{% else %}<a href="{{ url_for('auth.login') }}">Log in</a><a class="button small-button" href="{{ url_for('auth.signup') }}">Get started {{ icon('arrow') }}</a>{% endif %}</nav></header>
 {% endif %}

@@ -5,7 +5,7 @@ from flask import Blueprint, abort, current_app, flash, g, redirect, session, ur
 from requests.exceptions import RequestException, SSLError
 
 from .db import get_db
-from .utils import utcnow
+from .utils import is_frozen, utcnow
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -14,7 +14,15 @@ def load_user():
     g.user = None
     if session.get("sub"):
         g.user = get_db().users.find_one({"sub": session["sub"]})
-        if not g.user:
+        if not g.user or g.user.get("account", {}).get("status") == "deleted":
+            g.user = None
+            session.clear()
+        elif is_frozen(g.user):
+            g.user = None
+            session.clear()
+            abort(403, "Your account is temporarily frozen. Contact an administrator for help.")
+        elif session.get("version", 0) != g.user.get("session_version", 0):
+            g.user = None
             session.clear()
 
 
@@ -88,23 +96,41 @@ def callback():
     if not isinstance(roles, list):
         roles = []
     db = get_db()
-    db.users.update_one(
-        {"sub": identity["sub"]},
+    existing = db.users.find_one({"sub": identity["sub"]})
+    if existing and existing.get("account", {}).get("status") == "deleted":
+        session.clear()
+        abort(403, "This EVOLVE account has been deleted. Contact an administrator for help.")
+    if is_frozen(existing):
+        session.clear()
+        abort(403, "Your account is temporarily frozen. Contact an administrator for help.")
+    updates = {
+        "entitlements.auth0_pro": current_app.config["AUTH0_PRO_ROLE"] in roles,
+        "last_login": utcnow(),
+    }
+    if not (existing or {}).get("account", {}).get("identity_edited"):
+        updates.update({
+            "name": str(identity.get("name") or identity.get("nickname") or "Athlete")[:100],
+            "email": str(identity.get("email", ""))[:254],
+        })
+    result = db.users.update_one(
+        {"sub": identity["sub"], "account.status": {"$ne": "deleted"}},
         {
-            "$set": {
-                "name": str(identity.get("name") or identity.get("nickname") or "Athlete")[:100],
-                "email": str(identity.get("email", ""))[:254],
-                "entitlements.auth0_pro": current_app.config["AUTH0_PRO_ROLE"] in roles,
-                "last_login": utcnow(),
-            },
+            "$set": updates,
             "$setOnInsert": {"created_at": utcnow()},
         },
-        upsert=True,
+        upsert=existing is None,
     )
-    session.clear()
-    session["sub"] = identity["sub"]
-    session.permanent = True
+    if existing and not result.matched_count:
+        session.clear()
+        abort(403, "This account is unavailable. Contact an administrator for help.")
+    # Recheck after the write so a concurrent freeze/delete cannot start a session.
     user = db.users.find_one({"sub": identity["sub"]})
+    session.clear()
+    if user.get("account", {}).get("status") == "deleted" or is_frozen(user):
+        abort(403, "This account is unavailable. Contact an administrator for help.")
+    session["sub"] = identity["sub"]
+    session["version"] = user.get("session_version", 0)
+    session.permanent = True
     return redirect(url_for("main.dashboard" if user.get("profile") else "main.profile"))
 
 

@@ -22,6 +22,8 @@ def ensure_indexes():
 
 def create_indexes(db):
     db.users.create_index("sub", unique=True)
+    db.users.create_index([("created_at", DESCENDING)])
+    db.admin_audit.create_index([("created_at", DESCENDING)])
     db.plans.create_index([("user_id", ASCENDING), ("updated_at", DESCENDING)])
     db.workouts.create_index([("user_id", ASCENDING), ("logged_date", DESCENDING)])
     db.workouts.create_index([("user_id", ASCENDING), ("request_id", ASCENDING)], unique=True)

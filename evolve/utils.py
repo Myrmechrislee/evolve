@@ -22,7 +22,33 @@ def user_today(user=None):
 
 def is_pro(user):
     grants = (user or {}).get("entitlements", {})
+    if "pro_override" in grants:
+        return grants["pro_override"] is True
     return bool(grants.get("manual_pro") or grants.get("auth0_pro"))
+
+
+def is_admin(user):
+    return (user or {}).get("roles", {}).get("admin") is True
+
+
+def is_frozen(user, now=None):
+    account = (user or {}).get("account", {})
+    until = account.get("frozen_until")
+    if until and until.tzinfo is None:
+        until = until.replace(tzinfo=UTC)
+    return account.get("status") == "frozen" and (until is None or until > (now or utcnow()))
+
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not g.get("user"):
+            return redirect(url_for("auth.login"))
+        if not is_admin(g.user):
+            abort(403, "Administrator access is required.")
+        return view(*args, **kwargs)
+
+    return wrapped
 
 
 def object_id(value):

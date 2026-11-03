@@ -14,6 +14,7 @@ A development Flask app for building a workout routine, logging training, and fo
 - Workout drafts autosave as you type, including incomplete fields, set counters, and added or removed exercises. Drafts are private and separate for each planned occurrence or freestyle workout. A browser backup preserves recent input during refreshes or connection loss; drafts sync when connectivity returns. **Save workout** completes the log and clears its draft.
 - Exercise photos and step-by-step instructions for matching movements, available to Free and Pro users in plans, the dashboard, workout logging/history, and AI draft previews.
 - Dashboard with a Monday–Sunday workout calendar across all plans and freestyle logs, week navigation, and direct links to log sessions or view completed workouts. Dashboard and progress page show completed planned occurrences, weekly frequency, total workouts, 30-day training time, and weight volume.
+- Admin dashboard with UTC daily/weekly/monthly registrations and page visits, account search and pagination, editable account details, independent admin/Pro roles, timed or indefinite freezes, app account deletion, and an admin activity log.
 - CSRF protection, server-side ownership / Pro checks, signed HttpOnly session cookies, OIDC state / nonce / PKCE, optimistic plan version checks, input validation, duplicate-log indexes, and hourly AI quotas.
 
 ## Quick start
@@ -77,7 +78,38 @@ AUTH0_CLIENT_SECRET=your-client-secret
 
 Use the hostname alone for `AUTH0_DOMAIN`, without `https://`. Keep the hostname consistent: a callback registered for `localhost` is different from one registered for `127.0.0.1`. `APP_BASE_URL` supplies the exact callback and logout origin, so untrusted request Host headers cannot alter it.
 
-After Auth0 creates an identity, EVOLVE redirects the first login to `/profile`. The profile belongs in MongoDB; it is not stored in the Auth0 token or Flask cookie. Authlib handles ID-token signature, issuer, audience, expiry, state, and nonce verification. Only the Auth0 subject and temporary OAuth state are stored in the signed cookie; tokens are not retained after login.
+After Auth0 creates an identity, EVOLVE redirects the first login to `/profile`. The profile belongs in MongoDB; it is not stored in the Auth0 token or Flask cookie. Authlib handles ID-token signature, issuer, audience, expiry, state, and nonce verification. The signed cookie holds the Auth0 subject, a session version for revocation, and temporary OAuth state; tokens are not retained after login.
+
+### Administrator access and dashboard
+
+After the intended administrator has signed in once, run this on the app server, using their exact Auth0 subject:
+
+```bash
+flask --app app set-admin --sub 'auth0|THE_EXACT_USER_ID' --enabled
+```
+
+When the app runs through Docker Compose, run the command **inside the web container** so it uses the app's database connection:
+
+```bash
+docker compose exec web flask --app app set-admin --sub 'google-oauth2|YOUR_GOOGLE_USER_ID' --enabled
+```
+
+If the container reports `No such command 'set-admin'`, rebuild it with `docker compose up -d --build --no-deps web`, then retry. Restarting alone does not load changed source files. A Flask command run directly on macOS cannot resolve Docker-only MongoDB names such as `mongo` or `evolve-workout-tracker-mongo-1`; host-run commands need the published database address (`mongodb://localhost:27017` for the included database). Keep the same database name and any authentication options used by the app.
+
+They can then open **Admin dashboard** in the sidebar or visit `/admin`, even before completing a training profile. No Auth0 Management API credentials or Auth0 admin role are required. Administrator access is an independent, server-owned `users.roles.admin` grant; public profile fields and Auth0 identity claims cannot grant it.
+
+The dashboard supports:
+
+- Current account, Pro, admin, and frozen totals; registration and page-visit counts for today, this Monday–Sunday week, and this calendar month, all in UTC. Daily, weekly, and monthly history shows the latest 14 days, 12 weeks, or 12 months. Existing `created_at` dates supply registration history, including accounts later deleted through the dashboard.
+- Anonymous page-load counts beginning with this release. Successful HTML GETs count once per load, including repeat visits. Admin pages, auth routes, redirects, errors, APIs, assets, and health checks are excluded. These are **page views, not unique visitors**; there are no IP addresses, tracking cookies, visitor IDs, bot filtering, or historical traffic backfill. Analytics failures do not fail the page request.
+- Literal name/email/Auth0-subject search, access/status filters, and 25 accounts per page.
+- Display-name/contact-email edits that persist after login. These change EVOLVE details; they do not change the Auth0 login email, credentials, or subject.
+- Independent administrator and Pro controls. Selecting **Pro** or **Free** stores `entitlements.pro_override`, which takes precedence over Auth0 and CLI Pro grants immediately and across logins. **Follow Auth0 / CLI grants** removes the override. Granting admin alone does not grant Pro.
+- Freezes lasting 1, 7, or 30 days, or until manually lifted. A freeze increments `session_version`, blocks existing sessions on their next request, and prevents new sign-ins. Timed freezes expire automatically; users must sign in again afterward. Unfreezing preserves training data and never reactivates older cookies.
+- Permanent deletion of the EVOLVE profile, plans, workouts, drafts, chats, and quota records. A minimal user tombstone (subject, creation/deletion dates, revoked session version) blocks re-creation by Auth0 and preserves signup totals. The Auth0 identity and admin audit records remain. Deletion requires typing `DELETE`; administrators cannot delete/freeze themselves or remove their own admin access.
+- The ten most recent administrative actions, with actor, target subject, and UTC date. The complete log stays in `admin_audit`.
+
+The CLI also supports `set-admin --sub 'auth0|...' --disabled` and refuses to remove the last unfrozen administrator. All dashboard writes require an admin session and CSRF protection. Authorization is reloaded from MongoDB on every request, so grants and revocations apply without signing out.
 
 ### Granting Pro access
 
@@ -101,7 +133,7 @@ exports.onExecutePostLogin = async (event, api) => {
 };
 ```
 
-Set `AUTH0_ROLES_CLAIM` to that exact namespace and `AUTH0_PRO_ROLE=pro`. Roles are read only from the verified OIDC identity. The Auth0 grant is refreshed on each login; the manual grant is independent. Either grant enables Pro. To fully revoke Pro, disable the manual grant, remove the Auth0 role, and have the user sign in again. For production billing, a trusted billing webhook would need to own and synchronize entitlements; payment processing is outside this development app.
+Set `AUTH0_ROLES_CLAIM` to that exact namespace and `AUTH0_PRO_ROLE=pro`. Roles are read only from the verified OIDC identity. The Auth0 grant is refreshed on each login; the manual grant is independent. Either grant enables Pro unless an admin dashboard membership override is set. Select **Free** in the admin dashboard to revoke Pro immediately, or **Follow Auth0 / CLI grants** to use those grants again. Without an override, fully revoking Pro requires disabling the manual grant, removing the Auth0 role, and having the user sign in again. For production billing, a trusted billing webhook would need to own and synchronize entitlements; payment processing is outside this development app.
 
 ## OpenRouter AI coach
 
@@ -153,7 +185,9 @@ To import a newer version, add `--revision FULL_COMMIT_SHA`. See `evolve/data/RE
 
 | Collection | Purpose |
 | --- | --- |
-| `users` | Unique Auth0 subject, profile, grants, selected plan |
+| `users` | Unique Auth0 subject, profile, grants, admin role, account status, session version, selected plan; minimal tombstones for deleted accounts |
+| `daily_visits` | One anonymous UTC date counter per day; no visitor identifiers |
+| `admin_audit` | Administrator/CLI actor, target subject, action, details, and timestamp |
 | `plans` | User-owned versioned plans with stable session/exercise IDs |
 | `workouts` | Actual exercises and plan/session/week snapshots |
 | `workout_drafts` | Private, resumable workout forms; unique per user and planned occurrence or freestyle |
@@ -226,9 +260,9 @@ pytest
 ruff check evolve tests scripts app.py demo.py
 ```
 
-Tests use an isolated in-memory MongoDB substitute and mocked Auth0 / OpenRouter responses. They cover onboarding, ownership, server-side Pro checks, plan CRUD and stale writes, actual workout logging and duplicate protection, progress, AI consent / validation / drafts / expiry / rate limits, CSRF, and exercise hint matching, local photos, import validation, caching, and access controls. No real API key, Auth0 tenant, or MongoDB server is required by the test suite. Live integrations require your own credentials.
+Tests use an isolated in-memory MongoDB substitute and mocked Auth0 / OpenRouter responses. They cover onboarding, ownership, server-side Pro checks, plan CRUD and stale writes, actual workout logging and duplicate protection, progress, AI consent / validation / drafts / expiry / rate limits, CSRF, and exercise hint matching, local photos, import validation, caching, and access controls. Admin coverage includes route authorization, role changes across active sessions and Auth0 callbacks, timed freeze expiry and cookie revocation, deletion isolation, UTC metrics, traffic exclusions, search/pagination, and CLI bootstrap. No real API key, Auth0 tenant, or MongoDB server is required by the test suite. Live integrations require your own credentials.
 
-Build verification: **183 tests passed**, with Ruff passing as well. Chrome checks against the isolated demo verified photos loading only on demand, local-only requests, keyboard closing and focus return, matching while typing, added exercise rows, plan and workout history hints, mocked AI draft previews, mobile layout, and readable instructions when images fail. Autocomplete checks cover mouse/keyboard/touch selection, aliases, exact library names saved in plans and logs, stale responses, search errors, and IME composition. AI checks cover library-constrained choices, invalid and ambiguous exercises, legacy draft validation, and preserving saved plans when generation fails. MongoDB/Auth0/OpenRouter have not been tested against live services here.
+Build verification: **221 tests passed**. Chrome checks against the isolated admin preview verified dashboard and account screens at 1440px and 390px widths without page overflow, plus account editing, admin/Pro grants, freezing, unfreezing, and confirmed deletion through the forms. Earlier Chrome checks against the isolated workout demo verified photos loading only on demand, local-only requests, keyboard closing and focus return, matching while typing, added exercise rows, plan and workout history hints, mocked AI draft previews, mobile layout, and readable instructions when images fail. Autocomplete checks cover mouse/keyboard/touch selection, aliases, exact library names saved in plans and logs, stale responses, search errors, and IME composition. AI checks cover library-constrained choices, invalid and ambiguous exercises, legacy draft validation, and preserving saved plans when generation fails. MongoDB/Auth0/OpenRouter have not been tested against live services here.
 
 ## Development and deployment boundaries
 
@@ -238,7 +272,7 @@ This is a development scaffold. Run Flask debug mode only on your machine. For a
 gunicorn --bind 0.0.0.0:9000 --workers 2 --threads 4 --timeout 100 app:app
 ```
 
-Production mode enables Secure session cookies and HSTS. Configure your reverse proxy with an upstream timeout longer than AI requests. The app does not trust forwarded headers or enable cross-origin cookies. Account billing, password management (handled by Auth0), email, data export/account deletion workflows, background AI jobs, audit trails, and public deployment are not included.
+Production mode enables Secure session cookies and HSTS. Configure your reverse proxy with an upstream timeout longer than AI requests. The app does not trust forwarded headers or enable cross-origin cookies. Account billing, password management (handled by Auth0), email delivery, self-service data export/deletion, background AI jobs, and Auth0 identity administration are not included. Admin account deletion spans collections without transactions; access is denied before cleanup starts. Interrupted deletions appear in the dashboard with a **Retry cleanup** action. Requests already in flight are not cancelled.
 
 ## Project layout
 
@@ -247,6 +281,8 @@ app.py                 Real application entry point
 demo.py                Separate loopback-only sample-data demo
 evolve/__init__.py      App factory, configuration, CSRF, security headers
 evolve/auth.py          Auth0 OIDC flow and session loading
+evolve/admin.py         Admin dashboard, account/role controls, freeze/delete, audit log
+evolve/analytics.py     Anonymous daily page counters and UTC calendar metrics
 evolve/db.py            Shared MongoDB access and indexes
 evolve/validation.py    Profile validation and plan schema
 evolve/services.py      Plan persistence, schedules, progress, statistics
@@ -256,7 +292,7 @@ evolve/workouts.py      Planned/freestyle logging and history
 evolve/exercises.py     Local exercise-name matching and hint lookup API
 evolve/data/            Free Exercise DB instructions, metadata, and license
 evolve/coach.py         Pro AI integration, quotas, reviewable drafts
-evolve/cli.py           DB initialization and development Pro grants
+evolve/cli.py           DB initialization, Pro grants, and admin bootstrap
 evolve/templates/      Jinja pages and shared components
 evolve/static/         CSS, vanilla JS, favicon, and local exercise photos
 tests/                Integration and validation tests
