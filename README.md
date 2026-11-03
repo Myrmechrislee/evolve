@@ -222,35 +222,32 @@ Point the domain's DNS A / AAAA records to your server and allow inbound TCP por
 
 Without `CADDY_DOMAIN`, Caddy defaults to `localhost` with a local certificate, which requires trusting Caddy's local CA in your browser. Direct HTTP access remains available at **http://localhost:9000**. The web and MongoDB published ports bind to loopback. MongoDB data and Caddy certificates / state use persistent volumes. `docker compose down` preserves them; adding `-v` removes them.
 
-## Automatic deployment to Alibaba ECS
+## Automatic deployment to a Linux server
 
-[Deploy to Alibaba ECS](.github/workflows/deploy.yml) runs on every push to `main`. It connects over SSH, enters `~/evolve` under the SSH user's home directory, and runs:
+[Deploy to Linux server](.github/workflows/deploy.yml) runs on every push to `main`. It connects over SSH and runs:
 
 ```bash
-git pull --ff-only origin main
-docker compose up -d --build
-docker compose ps
+cd ~/evolve && git pull && docker compose up -d
 ```
 
-Deployments run one at a time. You can also run the workflow manually from the repository's **Actions** tab with `main` selected. The server checkout must be on `main`; a failed pull stops the deployment before Compose runs.
+Deployments run one at a time. You can also run the workflow manually from the repository's **Actions** tab with `main` selected. A failed directory change or pull stops the deployment before Compose runs. Application code is copied into the image at build time; rebuild the web image separately when code changes need to be applied.
 
 ### One-time setup
 
-1. On ECS, install Git, Bash, Docker, and the Docker Compose plugin. The SSH user must be able to run Docker without an interactive `sudo` prompt. Clone this repository into that user's `~/evolve`, check out `main`, and configure the server's `.env`. If the repository is private, give the server its own read access to GitHub so `git pull` works without prompts.
-2. Create a dedicated SSH key for Actions on a trusted machine, for example `ssh-keygen -t ed25519 -f ~/.ssh/evolve-actions -C github-actions-evolve -N ''`. Add the public key (`evolve-actions.pub`) to the ECS user's `~/.ssh/authorized_keys`. Keep the private key out of the repository.
+1. On the Linux server, install Git, Docker, and the Docker Compose plugin. The SSH user must be able to run Docker without an interactive `sudo` prompt. Clone this repository into that user's `~/evolve`, check out `main` with its upstream configured, and configure the server's `.env`. If the repository is private, give the server its own read access to GitHub so `git pull` works without prompts.
+2. Create a dedicated SSH key for Actions on a trusted machine, for example `ssh-keygen -t ed25519 -f ~/.ssh/evolve-actions -C github-actions-evolve -N ''`. Add the public key (`evolve-actions.pub`) to the server user's `~/.ssh/authorized_keys`. Keep the private key out of the repository.
 3. In [this repository's Actions secrets](https://github.com/Myrmechrislee/evolve/settings/secrets/actions), add:
 
    | Repository secret | Value |
    | --- | --- |
-   | `ECS_HOST` | The instance's public IP address or SSH hostname. |
-   | `ECS_USER` | The SSH username that owns `~/evolve`. |
-   | `ECS_SSH_KEY` | The complete private key from `~/.ssh/evolve-actions`, including its BEGIN/END lines. Use the unencrypted key created above. |
-   | `ECS_KNOWN_HOSTS` | The instance's verified SSH host-key entry in `known_hosts` format. |
+   | `SSH_HOST` | The SSH username and server address as `user@hostname` or `user@IP`. The user must own `~/evolve`. |
+   | `SSH_PRIVATE_KEY` | The complete private key from `~/.ssh/evolve-actions`, including its BEGIN/END lines. Use the unencrypted key created above. |
 
-4. For `ECS_KNOWN_HOSTS`, run `ssh-keyscan -H -t ed25519 -p 22 YOUR_ECS_HOST` on your trusted machine and verify its fingerprint against `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` run through the ECS console. Save the verified keyscan output as the secret. If SSH uses a different port, use that port in `ssh-keyscan` and add the repository **Actions variable** `ECS_PORT` with the same value; it defaults to `22`.
-5. Allow SSH connections from the GitHub runner through the ECS security group and host firewall. Push to `main` or manually run **Deploy to Alibaba ECS** to deploy.
+4. Allow SSH connections on port 22 from the GitHub runner through the server's firewall. Push to `main` or manually run **Deploy to Linux server** to deploy.
 
-The workflow uses the existing `.env` on ECS. If the checkout lives elsewhere, update the workflow's `cd "$HOME/evolve"` line. See GitHub's [Actions secrets guide](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) for managing the credentials.
+SSH uses port 22 and automatically accepts the server's host key on each fresh runner. No additional Actions variables are required.
+
+The workflow uses the existing `.env` on the server. If the checkout lives elsewhere, update the workflow's `cd ~/evolve` command. See GitHub's [Actions secrets guide](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) for managing the credentials.
 
 ## Tests and checks
 
