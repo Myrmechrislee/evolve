@@ -213,9 +213,9 @@ The web container reads `MONGO_URL` from `.env`. Set it to `mongodb://mongo:2701
 
 Open **http://localhost:9000**. The web and MongoDB published ports bind to loopback. MongoDB data uses a persistent volume. `docker compose down` preserves it; adding `-v` removes it.
 
-## Automatic deployment to a Linux server
+## Automatic deployment to Contabo Ubuntu
 
-[Deploy to Linux server](.github/workflows/deploy.yml) runs on every push to `main`. It connects over SSH and runs:
+[Deploy to Contabo Ubuntu](.github/workflows/deploy.yml) runs on every push to `main`. It uses the `SSH_HOST` and `SSH_PRIVATE_KEY` environment variables to connect over SSH and run:
 
 ```bash
 cd ~/evolve && git pull && docker compose up -d
@@ -227,16 +227,20 @@ Deployments run one at a time. You can also run the workflow manually from the r
 
 1. On the Linux server, install Git, Docker, and the Docker Compose plugin. The SSH user must be able to run Docker without an interactive `sudo` prompt. Clone this repository into that user's `~/evolve`, check out `main` with its upstream configured, and configure the server's `.env`. If the repository is private, give the server its own read access to GitHub so `git pull` works without prompts.
 2. Create a dedicated SSH key for Actions on a trusted machine, for example `ssh-keygen -t ed25519 -f ~/.ssh/evolve-actions -C github-actions-evolve -N ''`. Add the public key (`evolve-actions.pub`) to the server user's `~/.ssh/authorized_keys`. Keep the private key out of the repository.
-3. In [this repository's Actions secrets](https://github.com/Myrmechrislee/evolve/settings/secrets/actions), add:
+3. In [this repository's Actions secrets and variables](https://github.com/Myrmechrislee/evolve/settings/secrets/actions), add:
 
-   | Repository secret | Value |
+   | Repository setting | Value |
    | --- | --- |
-   | `SSH_HOST` | The SSH username and server address as `user@hostname` or `user@IP`. The user must own `~/evolve`. |
-   | `SSH_PRIVATE_KEY` | The complete private key from `~/.ssh/evolve-actions`, including its BEGIN/END lines. Use the unencrypted key created above. |
+   | `SSH_HOST` (secret or variable) | The server IP or hostname, which logs in as `root`, or an explicit `user@hostname` / `user@IP`. The user must own `~/evolve`. A secret takes precedence over a variable with the same name. |
+   | `SSH_PRIVATE_KEY` (secret) | The complete private key from `~/.ssh/evolve-actions`, including its BEGIN/END lines. Use the unencrypted key created above, not the `.pub` file or a key-file path. |
 
-4. Allow SSH connections on port 22 from the GitHub runner through the server's firewall. Push to `main` or manually run **Deploy to Linux server** to deploy.
+4. Allow SSH connections on port 22 from the GitHub runner through the server's firewall. Push to `main` or manually run **Deploy to Contabo Ubuntu** to deploy.
 
-SSH uses port 22 and automatically accepts the server's host key on each fresh runner. No additional Actions variables are required.
+Bare IPs and hostnames default to `root`, the usual [Contabo Linux login](https://contabo.com/blog/establishing-connection-server-ssh/), instead of the GitHub runner's local username. If you installed the public key for another user, set `SSH_HOST` to that `user@host`; `~/evolve` is resolved in that user's home directory.
+
+The workflow normalizes Windows line endings and literal `\n` / `\r\n` sequences, ensures a final newline, and validates the private key before connecting. Invalid or passphrase-protected keys fail immediately with a clear error. The key is written to a private temporary directory and removed when the step exits. SSH uses only this identity, port 22, and automatically accepts the server's host key on each fresh runner. No additional Actions variables are required.
+
+If SSH still reports `Permission denied (publickey)`, install the matching public key for the user selected by `SSH_HOST`, for example `ssh-copy-id -i ~/.ssh/evolve-actions.pub root@YOUR_SERVER_IP`. On that server account, `~/.ssh` should have permissions `700` and `~/.ssh/authorized_keys` permissions `600`, with both owned by that user. Public-key login must be allowed for that account in the server's SSH configuration.
 
 The workflow uses the existing `.env` on the server. If the checkout lives elsewhere, update the workflow's `cd ~/evolve` command. See GitHub's [Actions secrets guide](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) for managing the credentials.
 

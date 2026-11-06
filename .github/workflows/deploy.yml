@@ -1,4 +1,4 @@
-name: Deploy to Linux server
+name: Deploy to Contabo Ubuntu
 
 on:
   push:
@@ -20,25 +20,51 @@ jobs:
       - name: Deploy over SSH
         shell: bash
         env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_HOST: ${{ secrets.SSH_HOST || vars.SSH_HOST }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          : "${SSH_HOST:?Set the SSH_HOST repository secret}"
+          set +x
+          : "${SSH_HOST:?Set SSH_HOST as an Actions repository secret or variable}"
           : "${SSH_PRIVATE_KEY:?Set the SSH_PRIVATE_KEY repository secret}"
+
+          if [[ "$SSH_HOST" == -* || "$SSH_HOST" == *[[:space:]]* || "$SSH_HOST" == *://* ]]; then
+            printf '%s\n' 'SSH_HOST must be an IP, hostname, or user@host, without spaces or a URL scheme.' >&2
+            exit 1
+          fi
+
+          # Contabo normally uses root; an explicit user@host overrides it.
+          ssh_target="$SSH_HOST"
+          if [[ "$ssh_target" != *@* ]]; then
+            ssh_target="root@$ssh_target"
+          fi
 
           umask 077
           ssh_dir="$(mktemp -d)"
           trap 'rm -rf "$ssh_dir"' EXIT
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$ssh_dir/key"
 
-          ssh -T \
+          # Accept multiline keys, Windows line endings, and escaped newlines.
+          private_key="${SSH_PRIVATE_KEY//\\r\\n/$'\n'}"
+          private_key="${private_key//\\n/$'\n'}"
+          private_key="${private_key//$'\r'/}"
+          printf '%s\n' "$private_key" > "$ssh_dir/key"
+          unset SSH_PRIVATE_KEY private_key
+
+          if ! ssh-keygen -y -P '' -f "$ssh_dir/key" >/dev/null 2>&1; then
+            printf '%s\n' 'SSH_PRIVATE_KEY must be a complete, unencrypted OpenSSH or PEM private key, not a .pub key.' >&2
+            exit 1
+          fi
+
+          printf '%s\n' 'Private key validated. Connecting to Contabo over SSH...'
+          ssh -F /dev/null -T \
             -i "$ssh_dir/key" \
             -o BatchMode=yes \
             -o IdentitiesOnly=yes \
+            -o IdentityAgent=none \
+            -o PreferredAuthentications=publickey \
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile="$ssh_dir/known_hosts" \
             -o ConnectTimeout=15 \
             -o ServerAliveInterval=30 \
             -o ServerAliveCountMax=3 \
-            -- "$SSH_HOST" 'cd ~/evolve && git pull && docker compose up -d'
+            -- "$ssh_target" 'cd ~/evolve && git pull && docker compose up -d'
