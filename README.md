@@ -33,6 +33,8 @@ Navigation, forms, dates, status messages, admin pages, plan editing, workout co
 
 In Chinese, expand **你已保存的训练** and choose **翻译已保存的训练内容** to translate additional saved text. The consent checkbox explains that workout text is sent to OpenRouter and its model provider; profile, account identity, IDs, dates, and workout metrics are excluded. Translation is available to Free and Pro members and uses the existing hourly AI quota. Results are validated, cached privately by account and source text, and reused across plans and historical snapshots. A failure leaves original records visible. Viewing pages or switching languages never calls the provider. Editing text produces a new cache key; deleting an account removes its translations.
 
+Rejected or truncated translation output is retried in smaller batches, at most once per text; each provider request counts toward the hourly quota. Translations must preserve numeric tokens exactly. Server warnings identify the failure stage, HTTP/provider status, batch size, and attempt without logging workout text or provider response bodies. For example, `stage=translation_numbers` means the model changed or reordered digits, while `stage=response_truncated` means it reached its output limit.
+
 Auth0 sign-in requests use `ui_locales=zh-CN` for Chinese. Enable **Chinese - Simplified (`zh-CN`)** alongside English in the Auth0 tenant's language settings to translate its hosted login page. See [Auth0's language configuration](https://auth0.com/docs/customize/internationalization-and-localization/universal-login-internationalization).
 
 ## Quick start
