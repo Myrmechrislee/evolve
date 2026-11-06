@@ -13,9 +13,16 @@
       <a class="icon-button" href="{{ url_for('main.dashboard', week=schedule.next.isoformat()) }}#weekly-workouts" aria-label="{{ tr('Next week') }}">{{ icon('chevron') }}</a>
     </nav>
   </div>
+  <div class="week-selector" data-week-selector role="group" aria-label="{{ tr('Choose a day') }}" hidden>
+    {% for day in schedule.days %}
+    <button type="button" data-week-day="{{ loop.index0 }}" aria-controls="week-day-{{ loop.index0 }}" aria-pressed="false" aria-label="{{ localdate(day.date, '%A, %B %d, %Y') }}" {% if day.date == today %}aria-current="date"{% endif %}>
+      <span>{{ localdate(day.date, '%a') }}</span><strong>{{ day.date.day }}</strong><i {% if day.workouts %}class="has-workouts"{% endif %} aria-hidden="true"></i>
+    </button>
+    {% endfor %}
+  </div>
   <div class="week-grid">
     {% for day in schedule.days %}
-    <section class="week-day {% if day.date == today %}is-today{% endif %}" aria-label="{{ localdate(day.date, '%A, %B %d, %Y') }}">
+    <section id="week-day-{{ loop.index0 }}" class="week-day {% if day.date == today %}is-today{% endif %}" aria-label="{{ localdate(day.date, '%A, %B %d, %Y') }}">
       <div class="week-day-heading">
         <time datetime="{{ day.date.isoformat() }}" {% if day.date == today %}aria-current="date"{% endif %}>
           <span>{{ localdate(day.date, '%a') }}</span><strong>{{ day.date.day }}</strong>

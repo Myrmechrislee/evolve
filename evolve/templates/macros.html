@@ -15,6 +15,7 @@
 {% elif name == 'chevron' %}<path d="m9 5 7 7-7 7"/>
 {% elif name == 'chevron-left' %}<path d="m15 5-7 7 7 7"/>
 {% elif name == 'menu' %}<path d="M4 6h16M4 12h16M4 18h16"/>
+{% elif name == 'more' %}<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>
 {% elif name == 'edit' %}<path d="m15 4 5 5M4 20l5-1L21 7l-4-4L5 15z"/>
 {% elif name == 'bolt' %}<path d="m13 2-9 12h7l-1 8 10-12h-7z"/>
 {% elif name == 'lock' %}<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/>
@@ -22,6 +23,15 @@
 {%- endmacro %}
 
 {% macro csrf_field() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro workspace_links(active, is_pro, is_admin) %}
+  {% for endpoint,label,name,key in [('main.dashboard','Overview','grid','dashboard'),('plans.index','Workout plans','plan','plans'),('workouts.index','Workout log','dumbbell','workouts'),('main.progress_page','Progress','chart','progress')] %}
+    <a class="nav-link {% if active == key %}active{% endif %}" href="{{ url_for(endpoint) }}" {% if active == key %}aria-current="page"{% endif %}>{{ icon(name) }}{{ tr(label) }}</a>
+  {% endfor %}
+  {% if is_pro %}<a class="nav-link {% if active == 'coach' %}active{% endif %}" href="{{ url_for('coach.index') }}" {% if active == 'coach' %}aria-current="page"{% endif %}>{{ icon('spark') }}{{ tr('AI coach') }}<span class="badge pro">PRO</span></a>{% endif %}
+  <a class="nav-link {% if active == 'profile' %}active{% endif %}" href="{{ url_for('main.profile') }}" {% if active == 'profile' %}aria-current="page"{% endif %}>{{ icon('user') }}{{ tr('Training profile') }}</a>
+  {% if is_admin %}<a class="nav-link {% if active == 'admin' %}active{% endif %}" href="{{ url_for('admin.index') }}" {% if active == 'admin' %}aria-current="page"{% endif %}>{{ icon('lock') }}{{ tr('Admin dashboard') }}</a>{% endif %}
+{% endmacro %}
 
 {% macro exercise_hint(name) -%}
 {% set hint = name|exercise_hint %}

@@ -12,7 +12,7 @@
     </div>
     {% if item.target_sets %}<span class="field-help set-target">{{ tr('Target: {v0} set{v1}', v0=(item.target_sets), v1=('s' if item.target_sets != 1 else '')) }}</span>{% endif %}
   </div>
-  <label>{{ tr('Reps / set') }}<input type="number" name="exercise_reps" value="{{ item.reps }}" min="0" max="500" required>{% if item.target %}<span class="field-help">{{ tr('Target: {v0}', v0=(item.target|workout_text)) }}</span>{% endif %}</label>
-  <label>{{ tr('kg / rep') }}<input type="number" name="exercise_weight" value="{{ item.weight_kg }}" min="0" max="1000" step="0.1" required></label>
+  <label>{{ tr('Reps / set') }}<input type="number" inputmode="numeric" name="exercise_reps" value="{{ item.reps }}" min="0" max="500" required>{% if item.target %}<span class="field-help">{{ tr('Target: {v0}', v0=(item.target|workout_text)) }}</span>{% endif %}</label>
+  <label>{{ tr('kg / rep') }}<input type="number" inputmode="decimal" name="exercise_weight" value="{{ item.weight_kg }}" min="0" max="1000" step="0.1" required></label>
   <button type="button" class="icon-button remove-row" data-remove-row aria-label="{{ tr('Remove exercise') }}">×</button>
 </div>

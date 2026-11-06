@@ -19,9 +19,9 @@
     row.className = "editor-exercise";
     row.dataset.id = exercise.id || "";
     row.innerHTML = `<div class="exercise-name exercise-name-field"><label>${tr("Exercise")}<input data-field="name" data-exercise-name required maxlength="100" placeholder="${tr("e.g. Goblet squat")}"></label><div data-exercise-hint hidden></div></div>
-      <label>${tr("Sets")}<input data-field="sets" type="number" min="1" max="20" required></label>
+      <label>${tr("Sets")}<input data-field="sets" type="number" inputmode="numeric" min="1" max="20" required></label>
       <label>${tr("Reps / time")}<input data-field="reps" required maxlength="40" placeholder="8–12"></label>
-      <label>${tr("Rest (s)")}<input data-field="rest_seconds" type="number" min="0" max="600" required></label>
+      <label>${tr("Rest (s)")}<input data-field="rest_seconds" type="number" inputmode="numeric" min="0" max="600" required></label>
       <button type="button" class="icon-button remove-row" data-remove-exercise aria-label="${tr("Remove exercise")}">×</button>
       <label class="exercise-notes">${tr("Notes")}<span class="optional">${tr("Optional")}</span><input data-field="notes" maxlength="500" placeholder="${tr("Form cues, warm-up, progression, or substitutions…")}"></label>`;
     const defaults = { name: "", sets: 3, reps: "10", rest_seconds: 90, notes: "" };

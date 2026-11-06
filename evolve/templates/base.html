@@ -1,8 +1,12 @@
-{% from 'macros.html' import icon, brand, csrf_field, language_switch %}
+{% from 'macros.html' import icon, brand, csrf_field, language_switch, workspace_links %}
 <!doctype html>
 <html lang="{{ locale }}">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7f3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="EVOLVE">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="description" content="{{ tr('Build your workout routine, log your training, and see your progress with EVOLVE.') }}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}{{ tr('Your next stronger self') }}{% endblock %} {{ tr('· EVOLVE') }}</title>
@@ -17,6 +21,7 @@
   {% if current_user %}<script src="{{ url_for('static', filename='exercise-autocomplete.js') }}" defer></script>{% endif %}
   {% if current_user %}<script src="{{ url_for('static', filename='exercise-alternatives.js') }}" defer></script>{% endif %}
   {% block scripts %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='mobile.css') }}">
 </head>
 <body class="{% if current_user and not public_page %}app-layout{% else %}public-layout{% endif %}">
 <a class="skip-link" href="#main">{{ tr('Skip to content') }}</a>
@@ -24,12 +29,7 @@
 <aside class="sidebar" id="sidebar">
   {{ brand() }}<p class="sidebar-label">{{ tr('YOUR WORKSPACE') }}</p>
   <nav aria-label="{{ tr('Main navigation') }}">
-  {% for endpoint,label,name,key in [('main.dashboard','Overview','grid','dashboard'),('plans.index','Workout plans','plan','plans'),('workouts.index','Workout log','dumbbell','workouts'),('main.progress_page','Progress','chart','progress')] %}
-    <a class="nav-link {% if active == key %}active{% endif %}" href="{{ url_for(endpoint) }}">{{ icon(name) }}{{ tr(label) }}</a>
-  {% endfor %}
-  {% if is_pro %}<a class="nav-link {% if active == 'coach' %}active{% endif %}" href="{{ url_for('coach.index') }}">{{ tr('{v0}AI coach', v0=(icon('spark'))) }}<span class="badge pro">PRO</span></a>{% endif %}
-  <a class="nav-link {% if active == 'profile' %}active{% endif %}" href="{{ url_for('main.profile') }}">{{ tr('{v0}Training profile', v0=(icon('user'))) }}</a>
-  {% if is_admin %}<a class="nav-link {% if active == 'admin' %}active{% endif %}" href="{{ url_for('admin.index') }}">{{ tr('{v0}Admin dashboard', v0=(icon('lock'))) }}</a>{% endif %}
+  {{ workspace_links(active, is_pro, is_admin) }}
   </nav>
   <div class="sidebar-bottom">
   <div class="sidebar-note">{{ icon('bolt') }}<strong>{{ tr('Consistency looks good on you.') }}</strong><span>{{ tr('One session at a time.') }}</span></div>
@@ -37,7 +37,7 @@
   </div>
 </aside>
 <div class="workspace">
-  <header class="topbar"><button class="icon-button mobile-menu" data-menu aria-label="{{ tr('Toggle navigation') }}" aria-expanded="false" aria-controls="sidebar">{{ icon('menu') }}</button><div class="breadcrumb">{{ tr('Administration' if active == 'admin' else 'Your training') }} <span>/</span> <strong>{{ tr({'dashboard':'Overview','plans':'Workout plans','workouts':'Workout log','progress':'Progress','coach':'AI coach','profile':'Training profile','admin':'Admin dashboard'}.get(active, 'Workspace')) }}</strong></div><div class="topbar-right">{{ language_switch(locale) }}{{ icon('calendar') }}<span>{{ localdate(today, '%a, %b %d') }}</span><span class="topbar-divider"></span><span class="badge {{ 'pro-light' if is_pro else 'neutral' }}">{{ tr('EVOLVE PRO' if is_pro else 'FREE PLAN') }}</span></div></header>
+  <header class="topbar"><button class="icon-button mobile-menu" data-menu aria-label="{{ tr('Toggle navigation') }}" aria-expanded="false" aria-controls="mobile-navigation" aria-haspopup="dialog">{{ icon('menu') }}</button><div class="breadcrumb"><span class="breadcrumb-parent">{{ tr('Administration' if active == 'admin' else 'Your training') }}</span><span class="breadcrumb-separator">/</span><strong>{{ tr({'dashboard':'Overview','plans':'Workout plans','workouts':'Workout log','progress':'Progress','coach':'AI coach','profile':'Training profile','admin':'Admin dashboard'}.get(active, 'Workspace')) }}</strong></div><div class="topbar-right">{{ language_switch(locale) }}{{ icon('calendar') }}<span>{{ localdate(today, '%a, %b %d') }}</span><span class="topbar-divider"></span><span class="badge {{ 'pro-light' if is_pro else 'neutral' }}">{{ tr('EVOLVE PRO' if is_pro else 'FREE PLAN') }}</span></div></header>
 {% else %}
 <header class="public-header">{{ brand() }}<nav aria-label="{{ tr('Main navigation') }}">{{ language_switch(locale) }}<a href="{{ url_for('main.home') }}#how-it-works">{{ tr('How it works') }}</a><a href="{{ url_for('main.home') }}#membership">{{ tr('Membership') }}</a>{% if current_user %}<a class="button small-button" href="{{ url_for('main.dashboard') }}">{{ tr('Your dashboard {v0}', v0=(icon('arrow'))) }}</a>{% elif config.get('DEMO_MODE') %}<a class="button small-button" href="/demo">{{ tr('Open demo {v0}', v0=(icon('arrow'))) }}</a>{% else %}<a href="{{ url_for('auth.login') }}">{{ tr('Log in') }}</a><a class="button small-button" href="{{ url_for('auth.signup') }}">{{ tr('Get started {v0}', v0=(icon('arrow'))) }}</a>{% endif %}</nav></header>
 {% endif %}
@@ -47,6 +47,20 @@
 {% if locale == 'zh-Hans' and current_user and current_user.profile %}{% include 'workout_translation.html' %}{% endif %}
 {% block content %}{% endblock %}
 </main>
+{% if current_user and not public_page %}
+<nav class="mobile-tabs" aria-label="{{ tr('Main navigation') }}">
+  {% for endpoint,label,name,key in [('main.dashboard','Overview','grid','dashboard'),('plans.index','Plans','plan','plans'),('workouts.index','Workout log','dumbbell','workouts'),('main.progress_page','Progress','chart','progress')] %}
+  <a href="{{ url_for(endpoint) }}" {% if active == key %}aria-current="page"{% endif %}>{{ icon(name) }}<span>{{ tr(label) }}</span></a>
+  {% endfor %}
+  <button type="button" data-menu aria-controls="mobile-navigation" aria-haspopup="dialog" aria-expanded="false" {% if active in ['coach','profile','admin'] %}class="active"{% endif %}>{{ icon('more') }}<span>{{ tr('More') }}</span></button>
+</nav>
+<dialog id="mobile-navigation" class="mobile-sheet" aria-labelledby="mobile-navigation-title">
+  <div class="mobile-sheet-heading"><h2 id="mobile-navigation-title">{{ tr('Your workspace') }}</h2><button type="button" class="icon-button" data-close-navigation aria-label="{{ tr('Close navigation') }}" autofocus>×</button></div>
+  <div class="mobile-account"><span class="avatar">{{ current_user.name[:1]|upper }}</span><div><strong>{{ current_user.name }}</strong><span>{{ tr('Pro member' if is_pro else 'Free member') }}</span></div></div>
+  <nav aria-label="{{ tr('Main navigation') }}">{{ workspace_links(active, is_pro, is_admin) }}</nav>
+  <form class="mobile-signout" action="{{ url_for('auth.logout') }}" method="post">{{ csrf_field() }}<button class="button secondary">{{ icon('logout') }}{{ tr('Sign out') }}</button></form>
+</dialog>
+{% endif %}
 {% if current_user %}
 <dialog class="exercise-hint-dialog" id="exercise-hint-dialog" aria-labelledby="exercise-hint-title">
   <div class="exercise-hint-heading"><div><span class="eyebrow">{{ tr('EXERCISE FORM') }}</span><h2 id="exercise-hint-title"></h2></div><button type="button" class="icon-button" data-close-hint aria-label="{{ tr('Close exercise instructions') }}" autofocus>×</button></div>

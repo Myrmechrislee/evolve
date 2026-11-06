@@ -6,6 +6,7 @@ A development Flask app for building a workout routine, logging training, and fo
 
 - Public homepage and Auth0 Universal Login / signup / logout (OIDC through Authlib).
 - English and Simplified Chinese interfaces with a persistent language switch on the homepage and workspace.
+- Phone layouts with bottom navigation, a workspace sheet, a daily workout calendar, larger touch controls, and sticky save actions. iPhone safe areas and on-screen keyboards are accounted for; desktop navigation and the full weekly calendar remain available on larger screens.
 - First-login onboarding: birthdate, height, weight, goal, experience, available equipment, training days, session length, timezone, limitations, and a textarea for other specifications. Editable afterward.
 - MongoDB persistence for users, plans, logs, chat history, AI drafts, and per-user AI quotas. The connection string is read from **`MONGO_URL`**.
 - Free and Pro users can create, edit, follow, and delete plans manually. The editor supports 1–52 weeks, up to seven weekly sessions, and exercises with sets, reps or time, rest, and notes.

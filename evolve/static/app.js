@@ -2,17 +2,62 @@
 
 const { tr, workoutText } = window.evolveI18n;
 
-document.querySelector("[data-menu]")?.addEventListener("click", (event) => {
-  const button = event.currentTarget;
-  const open = document.querySelector("#sidebar").classList.toggle("open");
-  button.setAttribute("aria-expanded", String(open));
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    document.querySelector("#sidebar")?.classList.remove("open");
-    document.querySelector("[data-menu]")?.setAttribute("aria-expanded", "false");
-  }
-});
+const mobileNavigation = document.querySelector("#mobile-navigation");
+const menuButtons = document.querySelectorAll("[data-menu]");
+const phoneViewport = window.matchMedia("(max-width: 740px), (max-width: 960px) and (max-height: 500px) and (pointer: coarse)");
+if (mobileNavigation) {
+  let menuTrigger;
+  menuButtons.forEach((button) => button.addEventListener("click", () => {
+    menuTrigger = button;
+    mobileNavigation.showModal();
+    document.body.classList.add("navigation-open");
+    menuButtons.forEach((trigger) => trigger.setAttribute("aria-expanded", "true"));
+  }));
+  mobileNavigation.querySelector("[data-close-navigation]").addEventListener("click", () => mobileNavigation.close());
+  mobileNavigation.addEventListener("click", (event) => {
+    const bounds = mobileNavigation.getBoundingClientRect();
+    if (event.target === mobileNavigation && (event.clientY < bounds.top || event.clientY > bounds.bottom || event.clientX < bounds.left || event.clientX > bounds.right)) mobileNavigation.close();
+  });
+  mobileNavigation.addEventListener("close", () => {
+    document.body.classList.remove("navigation-open");
+    menuButtons.forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
+    if (phoneViewport.matches) menuTrigger?.focus();
+  });
+  phoneViewport.addEventListener("change", () => {
+    if (!phoneViewport.matches && mobileNavigation.open) mobileNavigation.close();
+  });
+}
+
+const weekSelector = document.querySelector("[data-week-selector]");
+if (weekSelector) {
+  const buttons = [...weekSelector.querySelectorAll("[data-week-day]")];
+  const days = [...document.querySelectorAll(".week-grid > .week-day")];
+  let selectedDay = buttons.findIndex((button) => button.hasAttribute("aria-current"));
+  if (selectedDay < 0) selectedDay = days.findIndex((day) => day.querySelector(".week-workout"));
+  if (selectedDay < 0) selectedDay = 0;
+  const showDay = () => {
+    weekSelector.hidden = !phoneViewport.matches;
+    days.forEach((day, index) => { day.hidden = phoneViewport.matches && index !== selectedDay; });
+    buttons.forEach((button, index) => button.setAttribute("aria-pressed", String(index === selectedDay)));
+  };
+  buttons.forEach((button, index) => button.addEventListener("click", () => {
+    selectedDay = index;
+    showDay();
+  }));
+  phoneViewport.addEventListener("change", showDay);
+  showDay();
+}
+
+// Keep the tab bar out of the way while the on-screen keyboard is open.
+if (window.visualViewport) {
+  const updateKeyboard = () => {
+    const editing = document.activeElement?.matches("input, textarea, select, [contenteditable='true']");
+    document.body.classList.toggle("keyboard-open", Boolean(editing && window.innerHeight - window.visualViewport.height > 150));
+  };
+  window.visualViewport.addEventListener("resize", updateKeyboard);
+  document.addEventListener("focusin", updateKeyboard);
+  document.addEventListener("focusout", () => requestAnimationFrame(updateKeyboard));
+}
 document.querySelectorAll("[data-confirm]").forEach((form) => {
   form.addEventListener("submit", (event) => {
     if (!window.confirm(form.dataset.confirm)) event.preventDefault();
@@ -20,6 +65,9 @@ document.querySelectorAll("[data-confirm]").forEach((form) => {
 });
 const timezone = document.querySelector("[data-detect-timezone]");
 if (timezone) timezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+document.querySelectorAll('input[type="number"]').forEach((input) => {
+  if (!input.hasAttribute("inputmode")) input.inputMode = input.step.includes(".") || input.step === "any" ? "decimal" : "numeric";
+});
 
 const workoutPicker = document.querySelector(".workout-picker");
 workoutPicker?.addEventListener("click", (event) => {

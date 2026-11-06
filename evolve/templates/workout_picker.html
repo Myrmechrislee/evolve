@@ -26,7 +26,7 @@
             <th scope="row">{{ tr('Week {v0}', v0=(row.week)) }}</th>
             {% for day in days %}
             {% set choice = row.workouts.get(day) %}
-            <td>
+            <td data-day="{{ tr(day) }}" {% if not choice %}class="session-rest-day"{% endif %}>
               {% if choice %}
                 {% if choice.completed %}
                 <div class="session-choice is-completed">
