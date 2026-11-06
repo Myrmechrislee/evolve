@@ -85,7 +85,7 @@ def test_signup_hint_and_fixed_callback(client, monkeypatch):
     monkeypatch.setattr(auth, "provider", lambda: provider)
     assert client.get("/auth/signup", headers={"Host": "attacker.example"}).status_code == 200
     provider.authorize_redirect.assert_called_once_with(
-        "http://localhost:9000/auth/callback", screen_hint="signup"
+        "http://localhost:9000/auth/callback", ui_locales="en", screen_hint="signup"
     )
 
 

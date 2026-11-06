@@ -1,6 +1,7 @@
 "use strict";
 
 (() => {
+  const { tr } = window.evolveI18n;
   const form = document.querySelector("[data-plan-editor]");
   if (!form) return;
   const initial = JSON.parse(document.querySelector("#plan-data").textContent);
@@ -8,7 +9,7 @@
   const errorBox = document.querySelector("#editor-error");
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const showError = (message) => {
-    errorBox.textContent = message;
+    errorBox.textContent = tr(message);
     errorBox.classList.remove("hidden");
     errorBox.scrollIntoView({ behavior: "smooth", block: "center" });
   };
@@ -17,12 +18,12 @@
     const row = document.createElement("div");
     row.className = "editor-exercise";
     row.dataset.id = exercise.id || "";
-    row.innerHTML = `<div class="exercise-name exercise-name-field"><label>Exercise<input data-field="name" data-exercise-name required maxlength="100" placeholder="e.g. Goblet squat"></label><div data-exercise-hint hidden></div></div>
-      <label>Sets<input data-field="sets" type="number" min="1" max="20" required></label>
-      <label>Reps / time<input data-field="reps" required maxlength="40" placeholder="8–12"></label>
-      <label>Rest (s)<input data-field="rest_seconds" type="number" min="0" max="600" required></label>
-      <button type="button" class="icon-button remove-row" data-remove-exercise aria-label="Remove exercise">×</button>
-      <label class="exercise-notes">Notes <span class="optional">Optional</span><input data-field="notes" maxlength="500" placeholder="Form cues, warm-up, progression, or substitutions…"></label>`;
+    row.innerHTML = `<div class="exercise-name exercise-name-field"><label>${tr("Exercise")}<input data-field="name" data-exercise-name required maxlength="100" placeholder="${tr("e.g. Goblet squat")}"></label><div data-exercise-hint hidden></div></div>
+      <label>${tr("Sets")}<input data-field="sets" type="number" min="1" max="20" required></label>
+      <label>${tr("Reps / time")}<input data-field="reps" required maxlength="40" placeholder="8–12"></label>
+      <label>${tr("Rest (s)")}<input data-field="rest_seconds" type="number" min="0" max="600" required></label>
+      <button type="button" class="icon-button remove-row" data-remove-exercise aria-label="${tr("Remove exercise")}">×</button>
+      <label class="exercise-notes">${tr("Notes")}<span class="optional">${tr("Optional")}</span><input data-field="notes" maxlength="500" placeholder="${tr("Form cues, warm-up, progression, or substitutions…")}"></label>`;
     const defaults = { name: "", sets: 3, reps: "10", rest_seconds: 90, notes: "" };
     Object.keys(defaults).forEach((key) => {
       row.querySelector(`[data-field="${key}"]`).value = exercise[key] ?? defaults[key];
@@ -35,14 +36,14 @@
     card.className = "card session-editor";
     card.dataset.id = item.id || "";
     card.innerHTML = `<div class="session-editor-heading">
-      <label>Session name<input data-session-title required maxlength="100" placeholder="e.g. Upper body strength"></label>
-      <label class="session-day">Weekday<select data-session-day></select></label>
-      <button type="button" class="icon-button" data-remove-session aria-label="Remove session">×</button>
-      </div><div class="editor-exercises"></div><button type="button" class="text-button text-link editor-add-exercise" data-add-exercise>＋ Add exercise</button>`;
+      <label>${tr("Session name")}<input data-session-title required maxlength="100" placeholder="${tr("e.g. Upper body strength")}"></label>
+      <label class="session-day">${tr("Weekday")}<select data-session-day></select></label>
+      <button type="button" class="icon-button" data-remove-session aria-label="${tr("Remove session")}">×</button>
+      </div><div class="editor-exercises"></div><button type="button" class="text-button text-link editor-add-exercise" data-add-exercise>${tr("＋ Add exercise")}</button>`;
     card.querySelector("[data-session-title]").value = item.title || "";
     const select = card.querySelector("[data-session-day]");
     const used = [...list.querySelectorAll("[data-session-day]")].map((el) => el.value);
-    days.forEach((day) => select.add(new Option(day, day)));
+    days.forEach((day) => select.add(new Option(tr(day), day)));
     select.value = item.day || days.find((day) => !used.includes(day)) || "Mon";
     const exercises = Array.isArray(item.exercises) && item.exercises.length ? item.exercises : [{}];
     exercises.forEach((exercise) => addExercise(card.querySelector(".editor-exercises"), exercise));

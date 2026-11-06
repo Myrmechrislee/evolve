@@ -5,6 +5,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from bson import ObjectId
 from flask import abort, flash, g, jsonify, redirect, request, url_for
 
+from .i18n import tr
+
 
 def utcnow():
     return datetime.now(UTC)
@@ -62,11 +64,11 @@ def login_required(view):
     def wrapped(*args, **kwargs):
         if not g.get("user"):
             if request.path.startswith("/api/"):
-                return jsonify(error="Please sign in."), 401
+                return jsonify(error=tr("Please sign in.")), 401
             return redirect(url_for("auth.login"))
         if not g.user.get("profile") and request.endpoint != "main.profile":
             if request.path.startswith("/api/"):
-                return jsonify(error="Complete your training profile first."), 403
+                return jsonify(error=tr("Complete your training profile first.")), 403
             flash("Tell us a little about yourself to get started.", "info")
             return redirect(url_for("main.profile"))
         return view(*args, **kwargs)

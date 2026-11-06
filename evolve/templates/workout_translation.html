@@ -1,0 +1,16 @@
+{% from 'macros.html' import csrf_field %}
+<details class="card workout-translation">
+  <summary>{{ tr('Your saved training') }}</summary>
+  <p class="small muted">{{ tr('Your plans and workout history use the same account in both languages.') }}</p>
+  <div class="button-group">
+    <a class="subtle-link" href="{{ url_for('plans.index') }}">{{ tr('Open your plans') }} →</a>
+    <a class="subtle-link" href="{{ url_for('workouts.index') }}">{{ tr('View your workout history') }} →</a>
+  </div>
+  <form action="{{ url_for('workout_i18n.translate') }}" method="post" data-workout-translation-form>
+    {{ csrf_field() }}
+    <p class="small">{{ tr('Translate plan names, session names, exercise instructions, and notes to Chinese. Your original records and progress stay the same.') }}</p>
+    <label class="consent-label"><input type="checkbox" name="consent" value="yes" required><span>{{ tr('I agree to send my saved workout text to OpenRouter and its model provider for translation. My profile and account details are excluded.') }}</span></label>
+    <button class="button secondary small-button">{{ tr('Translate my saved workouts') }}</button>
+    <p class="small muted" data-translation-status role="status" hidden>{{ tr('Translating your workout text…') }}</p>
+  </form>
+</details>

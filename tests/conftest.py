@@ -20,6 +20,7 @@ def app():
             "APP_BASE_URL": "http://localhost:9000",
             "APP_ENV": "development",
             "SESSION_COOKIE_SECURE": False,
+            "LANGUAGE_TRUSTED_PROXIES": "",
             "MONGO_DB": "evolve_test",
             "AUTH0_DOMAIN": "",
             "AUTH0_CLIENT_ID": "",

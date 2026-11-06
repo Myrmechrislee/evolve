@@ -37,6 +37,7 @@ def create_app(config=None, *, mongo_client=None):
         OPENROUTER_API_KEY=os.getenv("OPENROUTER_API_KEY", ""),
         OPENROUTER_MODEL=os.getenv("OPENROUTER_MODEL", "openai/gpt-4.1-mini"),
         AI_REQUESTS_PER_HOUR=int(os.getenv("AI_REQUESTS_PER_HOUR", "20")),
+        LANGUAGE_TRUSTED_PROXIES=os.getenv("LANGUAGE_TRUSTED_PROXIES", ""),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SECURE=production,
         SESSION_COOKIE_SAMESITE="Lax",
@@ -46,6 +47,12 @@ def create_app(config=None, *, mongo_client=None):
     )
     if config:
         app.config.update(config)
+    from .geolocation import trusted_networks
+
+    try:
+        trusted_networks(app.config["LANGUAGE_TRUSTED_PROXIES"])
+    except (ValueError, AttributeError):
+        raise RuntimeError("LANGUAGE_TRUSTED_PROXIES must be a comma-separated list of IP networks.") from None
     if not app.config["SECRET_KEY"] or app.config["SECRET_KEY"] == "replace-with-a-random-secret":
         raise RuntimeError("Set a random SECRET_KEY in .env; see .env.example and README.md.")
     base = urlsplit(app.config["APP_BASE_URL"])
@@ -81,13 +88,15 @@ def create_app(config=None, *, mongo_client=None):
         )
     app.extensions["auth0_oauth"] = oauth
 
-    from . import admin, analytics, auth, cli, coach, exercises, main, plans, workouts
+    from . import admin, analytics, auth, cli, coach, exercises, i18n, main, plans, workout_i18n, workouts
     from .db import get_db
     from .utils import is_admin, is_pro, user_today
 
     for blueprint in (auth.bp, main.bp, plans.bp, workouts.bp, workouts.draft_bp, coach.bp, exercises.bp, admin.bp):
         app.register_blueprint(blueprint)
-    app.add_template_filter(exercises.exercise_hint, "exercise_hint")
+    app.add_template_filter(exercises.display_hint, "exercise_hint")
+    i18n.init_app(app)
+    workout_i18n.init_app(app)
     app.before_request(auth.load_user)
     app.after_request(analytics.record_page_view)
     cli.init_app(app)
@@ -101,15 +110,14 @@ def create_app(config=None, *, mongo_client=None):
 
     @app.template_filter("shortdate")
     def shortdate(value):
-        from datetime import date
-
-        try:
-            return date.fromisoformat(str(value)[:10]).strftime("%b %d, %Y")
-        except (ValueError, TypeError):
-            return "—"
+        return i18n.localdate(value)
 
     @app.after_request
     def headers(response):
+        if request.endpoint != "static":
+            response.headers["Content-Language"] = i18n.get_locale()
+            response.vary.add("Cookie")
+            response.vary.add("Accept-Language")
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -126,11 +134,14 @@ def create_app(config=None, *, mongo_client=None):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         elif g.get("user") or request.path.startswith(("/auth/", "/api/")):
             response.headers["Cache-Control"] = "no-store"
+        elif response.mimetype == "text/html":
+            response.headers["Cache-Control"] = "private, no-cache"
         if app.config["SESSION_COOKIE_SECURE"]:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
         return response
 
     def error_response(status, message):
+        message = i18n.tr(message)
         if request.path.startswith("/api/"):
             return jsonify(error=message), status
         return render_template("error.html", status=status, message=message), status

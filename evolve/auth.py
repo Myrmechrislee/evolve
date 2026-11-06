@@ -5,6 +5,7 @@ from flask import Blueprint, abort, current_app, flash, g, redirect, session, ur
 from requests.exceptions import RequestException, SSLError
 
 from .db import get_db
+from .i18n import get_locale, tr
 from .utils import is_frozen, utcnow
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -46,7 +47,8 @@ def signup():
 def start_authorization(**kwargs):
     try:
         return provider().authorize_redirect(
-            current_app.config["APP_BASE_URL"] + "/auth/callback", **kwargs
+            current_app.config["APP_BASE_URL"] + "/auth/callback",
+            ui_locales="zh-CN" if get_locale() == "zh-Hans" else "en", **kwargs
         )
     except RequestException as error:
         current_app.logger.warning("Auth0 connection failed (%s).", type(error).__name__)
@@ -62,8 +64,11 @@ def callback():
         if isinstance(error, MismatchingStateError):
             reason = "session_state"
             message = (
-                "Your sign-in session expired or its cookie is missing. "
-                "Open " + current_app.config["APP_BASE_URL"] + " and start sign-in again in the same browser."
+                tr(
+                    "Your sign-in session expired or its cookie is missing. "
+                    "Open {url} and start sign-in again in the same browser.",
+                    url=current_app.config["APP_BASE_URL"],
+                )
             )
         elif isinstance(error, SSLError):
             reason = "tls_connection"

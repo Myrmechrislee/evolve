@@ -25,18 +25,30 @@
 
 {% macro exercise_hint(name) -%}
 {% set hint = name|exercise_hint %}
-{% if hint %}<button type="button" class="exercise-hint-button" data-exercise-hint-detail="{{ hint|tojson|forceescape }}" aria-label="View form for {{ name }}" aria-haspopup="dialog">View form</button>{% endif %}
+{% if hint %}<button type="button" class="exercise-hint-button" data-exercise-hint-detail="{{ hint|tojson|forceescape }}" aria-label="{{ tr('View form for {v0}', v0=(name)) }}" aria-haspopup="dialog">{{ tr('View form') }}</button>{% endif %}
 {%- endmacro %}
 
-{% macro brand() %}<a class="brand" href="{{ url_for('main.home') }}" aria-label="EVOLVE homepage"><svg width="27" height="30" viewBox="0 0 27 30" fill="none" aria-hidden="true"><path d="M24 3H3v24h21M3 14h16" stroke="currentColor" stroke-width="6"/></svg><span>evolve<span class="brand-dot">.</span></span></a>{% endmacro %}
+{% macro brand() %}<a class="brand" href="{{ url_for('main.home') }}" aria-label="{{ tr('EVOLVE homepage') }}"><svg width="27" height="30" viewBox="0 0 27 30" fill="none" aria-hidden="true"><path d="M24 3H3v24h21M3 14h16" stroke="currentColor" stroke-width="6"/></svg><span>evolve<span class="brand-dot">.</span></span></a>{% endmacro %}
 
-{% macro ring(state, size='') %}<div class="progress-ring {{ size }}" style="--progress:{{ state.percent }}" role="img" aria-label="{{ state.percent }} percent of planned workouts complete"><div><strong>{{ state.percent }}<small>%</small></strong><span>complete</span></div></div>{% endmacro %}
+{% macro ring(state, size='') %}<div class="progress-ring {{ size }}" style="--progress:{{ state.percent }}" role="img" aria-label="{{ tr('{v0} percent of planned workouts complete', v0=(state.percent)) }}"><div><strong>{{ state.percent }}<small>%</small></strong><span>{{ tr('complete') }}</span></div></div>{% endmacro %}
 
 {% macro activity_chart(stats) %}
-<div class="activity-chart" role="img" aria-label="Workouts per week: {% for item in stats.chart %}{{ item.label }}: {{ item.count }} workouts. {% endfor %}">
+<div class="activity-chart" role="img" aria-label="{{ tr('Workouts per week:') }} {% for item in stats.chart %}{{ tr('{date}: {count} workouts.', date=item.label, count=item.count) }} {% endfor %}">
 {% for item in stats.chart %}<div class="chart-column"><span class="chart-value">{{ item.count }}</span><div class="chart-track"><div class="chart-bar {% if loop.last %}current{% endif %}" style="height:{{ [4, (item.count / stats.chart_max * 100)|round]|max }}%"></div></div><span class="chart-label">{{ item.label }}</span></div>{% endfor %}
 </div>{% endmacro %}
 
 {% macro log_rows(logs) %}
-{% for log in logs %}<div class="activity-row"><span class="activity-icon">{{ icon('dumbbell') }}</span><div class="grow"><strong>{{ log.title }}</strong><span class="muted small">{{ log.logged_date|shortdate }} · {{ log.duration_minutes }} min{% if log.planned %} · Week {{ log.week }}{% endif %}</span></div><span class="badge done">{{ icon('check') }} Completed</span></div>{% else %}<div class="empty-inline">Your first workout belongs here. Log a session to start building momentum.</div>{% endfor %}
+{% for log in logs %}<div class="activity-row"><span class="activity-icon">{{ icon('dumbbell') }}</span><div class="grow"><strong>{{ log.title|workout_text }}</strong><span class="muted small">{{ tr('{v0} · {v1} min', v0=(log.logged_date|shortdate), v1=(log.duration_minutes)) }}{% if log.planned %} {{ tr('· Week {v0}', v0=(log.week)) }}{% endif %}</span></div><span class="badge done">{{ tr('{v0} Completed', v0=(icon('check'))) }}</span></div>{% else %}<div class="empty-inline">{{ tr('Your first workout belongs here. Log a session to start building momentum.') }}</div>{% endfor %}
+{% endmacro %}
+
+{% macro language_switch(locale) %}
+<div class="language-switch" role="group" aria-label="{{ tr('Language') }}">
+{% for code, label in [('en', 'English'), ('zh-Hans', '中文')] %}
+<form action="{{ url_for('i18n.change_language', locale=code) }}" method="post" data-language-switch>
+  {{ csrf_field() }}
+  <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+  <button type="submit" lang="{{ code }}" aria-pressed="{{ 'true' if code == locale else 'false' }}" aria-label="{{ tr('Switch to Simplified Chinese' if code == 'zh-Hans' else 'Switch to English') }}">{{ label }}</button>
+</form>
+{% endfor %}
+</div>
 {% endmacro %}

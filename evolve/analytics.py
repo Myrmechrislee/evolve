@@ -6,6 +6,7 @@ from flask import current_app, request
 from pymongo.errors import PyMongoError
 
 from .db import get_db
+from .i18n import localdate
 from .utils import utcnow
 
 
@@ -76,7 +77,7 @@ def dashboard_metrics(db, period, now=None):
         end = shift_period(start, period, 1)
         left, right = start.date().isoformat(), end.date().isoformat()
         history.append({
-            "label": start.strftime("%b %Y" if period == "month" else "%b %d, %Y"),
+            "label": localdate(start, "%b %Y" if period == "month" else "%b %d, %Y"),
             "accounts": sum(count for day, count in signups.items() if left <= day < right),
             "visits": sum(count for day, count in visits.items() if left <= day < right),
         })

@@ -1,6 +1,7 @@
 "use strict";
 
 (() => {
+  const { tr } = window.evolveI18n;
   const draftKey = (owner, occurrence) => `evolve:workout-draft:v1:${owner}:${occurrence || "freestyle"}`;
   const readLocal = (key) => {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
@@ -32,7 +33,7 @@
   let locallySaved = false;
 
   const showStatus = (message, state = "") => {
-    status.textContent = message;
+    status.textContent = tr(message);
     status.dataset.state = state;
     status.hidden = false;
   };

@@ -190,7 +190,7 @@ def delete(user_id):
         })
     elif not user["account"].get("cleanup_pending"):
         abort(404, "That account has already been deleted.")
-    for collection in ("plans", "workouts", "workout_drafts", "conversations", "ai_drafts", "ai_usage"):
+    for collection in ("plans", "workouts", "workout_drafts", "conversations", "ai_drafts", "ai_usage", "training_translations"):
         db[collection].delete_many({"user_id": user["sub"]})
     # Older quota records encode the subject in their primary key.
     db.ai_usage.delete_many({"_id": {"$regex": "^" + re.escape(user["sub"]) + ":"}})

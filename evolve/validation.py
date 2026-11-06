@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from jsonschema import Draft202012Validator
 
+from .i18n import tr
 from .utils import ValidationError
 
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -69,7 +70,11 @@ def bounded_number(value, label, minimum, maximum, *, integer=False):
             raise ValueError
     except (ValueError, TypeError, OverflowError):
         raise ValidationError(
-            f"{label} must be {'a whole number ' if integer else ''}between {minimum} and {maximum}."
+            tr(
+                "{name} must be a whole number between {minimum} and {maximum}." if integer
+                else "{name} must be between {minimum} and {maximum}.",
+                name=tr(label), minimum=minimum, maximum=maximum,
+            )
         ) from None
     return int(number) if integer else number
 
@@ -78,7 +83,11 @@ def text(value, label, maximum, *, required=False):
     value = str(value or "").strip()
     if len(value) > maximum or (required and not value):
         raise ValidationError(
-            f"{label} {'is required and ' if required else ''}must be at most {maximum} characters."
+            tr(
+                "{name} is required and must be at most {maximum} characters." if required
+                else "{name} must be at most {maximum} characters.",
+                name=tr(label), maximum=maximum,
+            )
         )
     return value
 
@@ -97,7 +106,7 @@ def parse_profile(form, today):
         raise ValidationError("Enter a valid timezone, for example Asia/Shanghai or Europe/London.") from None
     for key, choices in (("goal", GOALS), ("experience", EXPERIENCE), ("equipment", EQUIPMENT)):
         if form.get(key) not in choices:
-            raise ValidationError(f"Choose a valid {key}.")
+            raise ValidationError(tr("Choose a valid {choice}.", choice=tr(key)))
     return {
         "birthdate": birthdate.isoformat(),
         "height_cm": bounded_number(form.get("height_cm"), "Height in cm", 50, 260),

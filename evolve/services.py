@@ -5,6 +5,7 @@ from flask import abort, g
 from pymongo import ReturnDocument
 
 from .db import get_db
+from .i18n import localdate
 from .utils import ValidationError, object_id, user_today, utcnow
 from .validation import DAYS, normalize_plan
 
@@ -213,7 +214,7 @@ def dashboard_stats():
         ]
         chart.append(
             {
-                "label": start.strftime("%b %d"),
+                "label": localdate(start, "%b %d"),
                 "count": len(matching),
                 "minutes": sum(x["duration_minutes"] for x in matching),
             }

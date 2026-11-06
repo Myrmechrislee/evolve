@@ -3,6 +3,7 @@ import json
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
 from .db import get_db
+from .i18n import tr
 from .services import owned_plan, plan_content, progress, save_plan
 from .utils import ValidationError, login_required, user_today
 
@@ -22,7 +23,7 @@ def editor(existing=None):
     initial = (
         plan_content(existing)
         if existing
-        else {"name": "", "goal": g.user["profile"]["goal"], "weeks": 4, "sessions": []}
+        else {"name": "", "goal": tr(g.user["profile"]["goal"]), "weeks": 4, "sessions": []}
     )
     start_date = existing["start_date"] if existing else user_today().isoformat()
     error = None

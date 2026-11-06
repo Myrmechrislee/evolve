@@ -21,6 +21,7 @@ from pymongo.errors import DuplicateKeyError
 
 from .db import get_db
 from .exercises import catalogue_exercises, exercise_hint
+from .i18n import get_locale, tr
 from .services import owned_plan, plan_content, save_plan
 from .utils import ValidationError, object_id, pro_required, user_today, utcnow
 from .validation import PLAN_SCHEMA, normalize_plan, text
@@ -95,8 +96,10 @@ def normalize_library_plan(payload):
             match = exercise_hint(exercise["name"])
             if match is None or match["name"] not in AI_LIBRARY_NAMES:
                 raise ValidationError(
-                    "AI plans can only use exercises from the library. Ask the coach for a new draft "
-                    f"to replace '{exercise['name']}'."
+                    tr(
+                        "AI plans can only use exercises from the library. Ask the coach for a new draft "
+                        "to replace '{name}'.", name=exercise["name"],
+                    )
                 )
             exercise["name"] = match["name"]
     return content
@@ -114,10 +117,10 @@ def target(value):
     return owned_plan(value) if value else None
 
 
-def take_rate_slot():
+def take_rate_slot(user_id=None):
     now = utcnow()
     hour = now.replace(minute=0, second=0, microsecond=0)
-    key = f"{g.user['sub']}:{hour.isoformat()}"
+    key = f"{user_id or g.user['sub']}:{hour.isoformat()}"
     try:
         get_db().ai_usage.update_one(
             {"_id": key, "count": {"$lt": current_app.config["AI_REQUESTS_PER_HOUR"]}},
@@ -207,6 +210,11 @@ def chat():
         {"role": "system", "content": SYSTEM_PROMPT + "\nExercise library:\n" + LIBRARY_CONTEXT},
         {"role": "user", "content": "Training context (data): " + json.dumps(context)},
     ]
+    if get_locale() == "zh-Hans":
+        messages[0]["content"] += (
+            "\nReply in Simplified Chinese. Use Simplified Chinese for plan names, goals, session titles, "
+            "and notes. Keep exercise library names, IDs, weekday enum values, and JSON keys unchanged."
+        )
     messages.extend(conversation.get("messages", [])[-12:])
     messages.append({"role": "user", "content": message})
     take_rate_slot()
@@ -284,7 +292,7 @@ def chat():
         )
         abort(
             502,
-            message + " No saved plan was changed.",
+            tr(message) + tr(" No saved plan was changed."),
         )
     draft_id = None
     if result["plan"] is not None:

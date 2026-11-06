@@ -1,5 +1,7 @@
 "use strict";
 
+const { tr, workoutText } = window.evolveI18n;
+
 document.querySelector("[data-menu]")?.addEventListener("click", (event) => {
   const button = event.currentTarget;
   const open = document.querySelector("#sidebar").classList.toggle("open");
@@ -48,7 +50,7 @@ if (logForm) {
       counter.querySelector('[data-set-step="-1"]').disabled = !Number.isFinite(value) || value <= 0;
       counter.querySelector('[data-set-step="1"]').disabled = value >= 30;
     });
-    total.textContent = `${count} ${count === 1 ? "set" : "sets"} completed`;
+    total.textContent = tr(count === 1 ? "{count} set completed" : "{count} sets completed", { count });
     total.hidden = false;
   };
   const addExercise = () => {
@@ -97,11 +99,11 @@ if (logForm) {
       if (target?.targetSets) {
         const hint = document.createElement("span");
         hint.className = "field-help set-target";
-        hint.textContent = `Target: ${target.targetSets} ${target.targetSets === "1" ? "set" : "sets"}`;
+        hint.textContent = tr(target.targetSets === "1" ? "Target: {count} set" : "Target: {count} sets", { count: target.targetSets });
         row.querySelector(".exercise-set-field").append(hint);
         const repsHint = document.createElement("span");
         repsHint.className = "field-help";
-        repsHint.textContent = `Target: ${target.targetReps}`;
+        repsHint.textContent = tr("Target: {reps}", { reps: workoutText(target.targetReps) });
         row.querySelector('[name="exercise_reps"]').closest("label").append(repsHint);
       }
       initializeRow(row);

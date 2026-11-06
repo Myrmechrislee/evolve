@@ -28,3 +28,21 @@ commit SHA with --revision. To use an already downloaded GitHub source tarball,
 add --archive /path/to/source.tar.gz (and its --revision if it differs).
 The existing catalogue is kept if source validation or image conversion fails.
 Old, unused photos are kept so previously rendered pages continue to work.
+
+
+Offline language-region data
+----------------------------
+
+language_regions.json.gz contains only CN, TW, HK, MO and SG ranges from DB-IP
+Country Lite, with integer IPv4/IPv6 endpoints for binary-search lookups. Source
+release, original SHA-256 checksum, attribution, license, and modifications are
+recorded inside the file. See db-ip-LICENSE.txt for CC BY 4.0 terms. The public
+and workspace footers include the required DB-IP attribution link.
+
+Refresh the snapshot from the project root, then rebuild/restart Flask:
+
+    python scripts/refresh_language_regions.py --month YYYY-MM
+
+The importer validates complete region coverage and non-overlapping ranges before
+replacing the existing file atomically. The app performs lookups locally and does
+not transmit, persist, or cache individual visitor IPs for this feature.

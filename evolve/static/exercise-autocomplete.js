@@ -1,6 +1,7 @@
 "use strict";
 
 (() => {
+  const { tr } = window.evolveI18n;
   const main = document.querySelector("#main");
   if (!main) return;
   const fields = new WeakMap();
@@ -83,10 +84,11 @@
         option.setAttribute("aria-selected", "false");
         const name = document.createElement("span");
         name.className = "exercise-suggestion-name";
-        name.textContent = exercise.name;
+        name.textContent = exercise.display_name && exercise.display_name !== exercise.name
+          ? `${exercise.display_name} · ${exercise.name}` : exercise.name;
         const detail = document.createElement("span");
         detail.className = "exercise-suggestion-detail";
-        detail.textContent = [exercise.equipment, ...exercise.primary_muscles].filter(Boolean).join(" · ");
+        detail.textContent = [exercise.equipment, ...exercise.primary_muscles].filter(Boolean).map((value) => tr(value)).join(" · ");
         option.append(name, detail);
         option.addEventListener("mousedown", (event) => event.preventDefault());
         option.addEventListener("click", () => choose(state, index));
@@ -96,8 +98,8 @@
       state.list.hidden = !items.length;
       state.input.setAttribute("aria-expanded", String(Boolean(items.length)));
       state.status.textContent = items.length
-        ? `${items.length} exercise suggestions available. Use the up and down arrow keys to choose.`
-        : "No matching exercises.";
+        ? tr("{count} exercise suggestions available. Use the up and down arrow keys to choose.", { count: items.length })
+        : tr("No matching exercises.");
       state.status.classList.toggle("sr-only", Boolean(items.length));
       state.status.hidden = false;
     } catch (error) {
@@ -125,7 +127,7 @@
     list.id = `exercise-suggestions-${++sequence}`;
     list.className = "exercise-suggestions";
     list.setAttribute("role", "listbox");
-    list.setAttribute("aria-label", "Exercise suggestions");
+    list.setAttribute("aria-label", tr("Exercise suggestions"));
     list.hidden = true;
     const status = document.createElement("span");
     status.className = "exercise-search-status";

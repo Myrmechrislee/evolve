@@ -1,6 +1,7 @@
 "use strict";
 
 (() => {
+  const { tr, workoutText } = window.evolveI18n;
   const dialog = document.querySelector("#exercise-hint-dialog");
   if (!dialog) return;
   const images = dialog.querySelector("[data-hint-images]");
@@ -34,9 +35,9 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "exercise-hint-button";
-      button.textContent = "View form";
+      button.textContent = tr("View form");
       button.dataset.exerciseHintDetail = JSON.stringify(hint);
-      button.setAttribute("aria-label", `View form for ${name}`);
+      button.setAttribute("aria-label", tr("View form for {name}", { name: workoutText(name) }));
       button.setAttribute("aria-haspopup", "dialog");
       slot.replaceChildren(button);
       slot.hidden = false;
@@ -91,22 +92,22 @@
     const button = event.target.closest("[data-exercise-hint-detail]");
     if (!button) return;
     const hint = JSON.parse(button.dataset.exerciseHintDetail);
-    dialog.querySelector("#exercise-hint-title").textContent = hint.name;
+    dialog.querySelector("#exercise-hint-title").textContent = hint.display_name || workoutText(hint.name);
     dialog.querySelector("[data-hint-meta]").textContent = [
-      hint.primary_muscles.length ? `Targets: ${hint.primary_muscles.join(", ")}` : "",
-      hint.equipment ? `Equipment: ${hint.equipment}` : "",
+      hint.primary_muscles.length ? tr("Targets: {muscles}", { muscles: hint.primary_muscles.map((value) => tr(value)).join(", ") }) : "",
+      hint.equipment ? tr("Equipment: {equipment}", { equipment: tr(hint.equipment) }) : "",
     ].filter(Boolean).join(" · ");
     imageError.classList.add("hidden");
     dialog.querySelector("[data-hint-source]").href = hint.source_url;
     dialog.querySelector("[data-hint-instructions]").replaceChildren(...hint.instructions.map((step) => {
       const item = document.createElement("li");
-      item.textContent = step;
+      item.textContent = workoutText(step);
       return item;
     }));
     images.replaceChildren(...hint.images.map((url, index) => {
       const figure = document.createElement("figure");
       const photo = document.createElement("img");
-      photo.alt = `${hint.name}, form photo ${index + 1}`;
+      photo.alt = tr("{name}, form photo {position}", { name: hint.name, position: index + 1 });
       photo.decoding = "async";
       photo.addEventListener("error", () => {
         if (!photo.isConnected) return;
@@ -115,7 +116,7 @@
       });
       photo.src = url;
       const caption = document.createElement("figcaption");
-      caption.textContent = `Position ${index + 1}`;
+      caption.textContent = tr("Position {position}", { position: index + 1 });
       figure.append(photo, caption);
       return figure;
     }));

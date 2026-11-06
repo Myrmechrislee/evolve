@@ -106,6 +106,14 @@ def hint_index():
 def exercise_hint(name):
     if not isinstance(name, str):
         return None
+    from .workout_i18n import public_translations
+
+    # Chinese is a lookup alias; the canonical English name is still saved.
+    translated_names = public_translations()
+    chinese = [exercise for exercise in catalogue_exercises()
+               if translated_names.get(exercise["name"]) == name.strip()] if re.search(r"[\u3400-\u9fff]", name) else []
+    if len(chinese) == 1:
+        return chinese[0]
     match = hint_index().get(normalize_name(name))
     if match is not None:
         return match
@@ -125,12 +133,18 @@ def search_catalogue():
 
 
 def search_exercises(query, limit=8):
+    from .workout_i18n import public_translations
+
+    translations = public_translations()
     normalized = normalize_name(query)
     terms = normalized.split()
     if not terms:
         return []
     matches = []
     for exercise, names in search_catalogue():
+        label = translations.get(exercise["name"])
+        if label:
+            names = [*names, (label, normalize_name(label))]
         scores = [
             (
                 key != normalized,
@@ -143,6 +157,8 @@ def search_exercises(query, limit=8):
             for index, (name, key) in enumerate(names)
             if all(any(word.startswith(term) for word in key.split()) for term in terms)
         ]
+        if label and query in label:
+            scores.append((label != query, False, not label.startswith(query), 0, len(label), exercise["name"].casefold()))
         if scores:
             matches.append((min(scores), exercise))
     return [
@@ -151,13 +167,30 @@ def search_exercises(query, limit=8):
     ]
 
 
+def display_hint(name):
+    from .i18n import get_locale
+    from .workout_i18n import workout_text
+
+    hint = exercise_hint(name)
+    if not hint or get_locale() != "zh-Hans":
+        return hint
+    return {**hint, "display_name": workout_text(hint["name"]),
+            "instructions": [workout_text(step) for step in hint["instructions"]]}
+
+
 @bp.get("/api/exercises/search")
 @login_required
 def search():
     query = request.args.get("q", "").strip()
     if len(query) > 100:
         abort(400, "Enter an exercise name of up to 100 characters.")
-    return jsonify(exercises=search_exercises(query) if len(query) >= 2 else [])
+    from .i18n import get_locale
+    from .workout_i18n import workout_text
+
+    results = search_exercises(query) if len(query) >= 2 else []
+    if get_locale() == "zh-Hans":
+        results = [{**exercise, "display_name": workout_text(exercise["name"])} for exercise in results]
+    return jsonify(exercises=results)
 
 
 @bp.get("/api/exercises/hint")
@@ -166,4 +199,4 @@ def hint():
     name = request.args.get("name", "").strip()
     if not name or len(name) > 100:
         abort(400, "Enter an exercise name of up to 100 characters.")
-    return jsonify(hint=exercise_hint(name))
+    return jsonify(hint=display_hint(name))

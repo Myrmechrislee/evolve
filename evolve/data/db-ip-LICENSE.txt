@@ -1,0 +1,16 @@
+IP Geolocation by DB-IP
+https://db-ip.com/
+
+This application includes a modified subset of the DB-IP IP to Country Lite database.
+Source and release: https://download.db-ip.com/free/dbip-country-lite-2026-11.csv.gz
+Original database publisher: DB-IP / Eris Networks S.A.S.
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+Full license: https://creativecommons.org/licenses/by/4.0/legalcode
+
+Modifications: selected the CN, TW, HK, MO and SG records, converted addresses to
+integer ranges, and compressed the resulting JSON for offline language selection.
+The source release and SHA-256 checksum are included in language_regions.json.gz.
+The original data has reduced coverage and accuracy compared with DB-IP's paid data.
+
+DB-IP requires a link to https://db-ip.com/ on web pages that use these results.
+The application's public and workspace footers include this attribution link.
