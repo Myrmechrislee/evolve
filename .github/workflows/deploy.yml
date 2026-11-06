@@ -67,4 +67,4 @@ jobs:
             -o ConnectTimeout=15 \
             -o ServerAliveInterval=30 \
             -o ServerAliveCountMax=3 \
-            -- "$ssh_target" 'cd ~/evolve && git pull && docker compose up -d'
+            -- "$ssh_target" 'cd ~/evolve && git pull && docker compose up -d --build'

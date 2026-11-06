@@ -15,6 +15,7 @@
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
   {% if current_user %}<script src="{{ url_for('static', filename='exercise-hints.js') }}" defer></script>{% endif %}
   {% if current_user %}<script src="{{ url_for('static', filename='exercise-autocomplete.js') }}" defer></script>{% endif %}
+  {% if current_user %}<script src="{{ url_for('static', filename='exercise-alternatives.js') }}" defer></script>{% endif %}
   {% block scripts %}{% endblock %}
 </head>
 <body class="{% if current_user and not public_page %}app-layout{% else %}public-layout{% endif %}">
@@ -54,6 +55,15 @@
   <p class="exercise-hint-error hidden" role="status">{{ tr('An image could not load. You can still follow the instructions below.') }}</p>
   <section class="exercise-hint-instructions" aria-labelledby="exercise-hint-steps-title"><h3 id="exercise-hint-steps-title">{{ tr('How to do it') }}</h3><ol data-hint-instructions></ol></section>
   <p class="exercise-hint-credit">{{ tr('Photos and instructions from') }} <a data-hint-source target="_blank" rel="noopener noreferrer">Free Exercise DB ↗</a> · <a href="https://unlicense.org/" target="_blank" rel="noopener noreferrer">The Unlicense</a></p>
+</dialog>
+<dialog class="exercise-hint-dialog exercise-alternatives-dialog" id="exercise-alternatives-dialog" aria-labelledby="exercise-alternatives-title" aria-describedby="exercise-alternatives-description">
+  <div class="exercise-hint-heading"><div><span class="eyebrow">{{ tr('FIND AN ALTERNATIVE') }}</span><h2 id="exercise-alternatives-title">{{ tr('Alternative exercises') }}</h2></div><button type="button" class="icon-button" data-close-alternatives aria-label="{{ tr('Close alternative exercises') }}" autofocus>×</button></div>
+  <p class="exercise-hint-meta" data-alternatives-source></p>
+  <p class="small muted" id="exercise-alternatives-description">{{ tr('Suggestions share target muscles and exercise type. Review the form and adjust your targets for the exercise you choose.') }}</p>
+  <label class="exercise-alternatives-filter">{{ tr('Equipment') }}<select data-alternatives-equipment disabled><option value="">{{ tr('Any equipment') }}</option></select></label>
+  <p class="small muted" data-alternatives-status role="status" aria-live="polite"></p>
+  <ul class="exercise-alternatives-list" data-alternatives-list aria-label="{{ tr('Alternative exercises') }}"></ul>
+  <button type="button" class="button secondary small-button" data-alternatives-retry hidden>{{ tr('Try again') }}</button>
 </dialog>
 {% endif %}
 {% if current_user and not public_page %}<footer class="workspace-footer"><span>{{ tr('A little progress, every day.') }}<br><a class="geo-attribution" href="https://db-ip.com/" target="_blank" rel="noopener noreferrer">{{ tr('IP Geolocation by DB-IP') }}</a></span><span>{{ tr('Made for your momentum.') }} <strong>EVOLVE</strong></span></footer></div>{% else %}<footer class="public-footer">{{ brand() }}<span>{{ tr('A little progress, every day.') }}<br><a class="geo-attribution" href="https://db-ip.com/" target="_blank" rel="noopener noreferrer">{{ tr('IP Geolocation by DB-IP') }}</a></span><span>{{ tr('Plan. Move. Repeat.') }}</span></footer>{% endif %}

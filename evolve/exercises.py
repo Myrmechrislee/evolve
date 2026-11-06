@@ -11,6 +11,7 @@ from flask import Blueprint, abort, jsonify, request
 from .utils import login_required
 
 bp = Blueprint("exercises", __name__)
+EXERCISE_LEVELS = {"beginner": 0, "intermediate": 1, "expert": 2}
 
 # Equivalent names only: never fall back from a specific movement to a different
 # variation or piece of equipment (for example, goblet squat -> front squat).
@@ -176,6 +177,76 @@ def display_hint(name):
         return hint
     return {**hint, "display_name": workout_text(hint["name"]),
             "instructions": [workout_text(step) for step in hint["instructions"]]}
+
+
+def alternative_candidates(exercise):
+    """Keep suggestions within the source's activity and primary muscle group."""
+    if not exercise:
+        return []
+    muscles = set(exercise["primary_muscles"])
+    return [
+        candidate for candidate in catalogue_exercises()
+        if candidate["id"] != exercise["id"]
+        and len(candidate["name"]) <= 100
+        and candidate["category"] == exercise["category"]
+        and muscles.intersection(candidate["primary_muscles"])
+        and EXERCISE_LEVELS[candidate["level"]] <= EXERCISE_LEVELS[exercise["level"]]
+    ]
+
+
+def alternative_exercises(name, equipment="", limit=6):
+    exercise = exercise_hint(name)
+    candidates = alternative_candidates(exercise)
+    if not candidates:
+        return []
+    # Equipment words should not outrank shared movement words, so a bench
+    # press with different equipment can still be a close name match.
+    equipment_words = set(normalize_name(" ".join(
+        candidate["equipment"] or "" for candidate in catalogue_exercises()
+    )).split())
+    source_words = set(normalize_name(exercise["name"]).split()) - equipment_words
+    primary = set(exercise["primary_muscles"])
+    secondary = set(exercise["secondary_muscles"])
+
+    def similarity(left, right):
+        return len(left & right) / len(left | right) if left or right else 1
+
+    def rank(candidate):
+        words = set(normalize_name(candidate["name"]).split()) - equipment_words
+        return (
+            -similarity(primary, set(candidate["primary_muscles"])),
+            -similarity(source_words, words),
+            -similarity(secondary, set(candidate["secondary_muscles"])),
+            candidate["equipment"] != exercise["equipment"],
+            candidate["name"].casefold(),
+        )
+
+    return sorted(
+        (candidate for candidate in candidates
+         if not equipment or (candidate["equipment"] or "unspecified") == equipment),
+        key=rank,
+    )[:limit]
+
+
+@bp.get("/api/exercises/alternatives")
+@login_required
+def alternatives():
+    name = request.args.get("name", "").strip()
+    if not name or len(name) > 100:
+        abort(400, "Enter an exercise name of up to 100 characters.")
+    equipment = request.args.get("equipment", "").strip()
+    allowed_equipment = {exercise["equipment"] or "unspecified" for exercise in catalogue_exercises()}
+    if equipment and equipment not in allowed_equipment:
+        abort(400, "Choose equipment from the exercise library.")
+    exercise = exercise_hint(name)
+    available_equipment = sorted({
+        candidate["equipment"] or "unspecified" for candidate in alternative_candidates(exercise)
+    })
+    return jsonify(
+        exercise=display_hint(name),
+        exercises=[display_hint(candidate["name"]) for candidate in alternative_exercises(name, equipment)],
+        equipment=available_equipment,
+    )
 
 
 @bp.get("/api/exercises/search")

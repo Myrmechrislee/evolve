@@ -39,7 +39,15 @@
       button.dataset.exerciseHintDetail = JSON.stringify(hint);
       button.setAttribute("aria-label", tr("View form for {name}", { name: workoutText(name) }));
       button.setAttribute("aria-haspopup", "dialog");
-      slot.replaceChildren(button);
+      const alternatives = document.createElement("button");
+      alternatives.type = "button";
+      alternatives.className = "exercise-hint-button";
+      alternatives.textContent = tr("Alternatives");
+      alternatives.dataset.exerciseAlternatives = hint.name;
+      alternatives.setAttribute("aria-label", tr("Find alternatives for {name}", { name: workoutText(name) }));
+      alternatives.setAttribute("aria-haspopup", "dialog");
+      slot.classList.add("exercise-hint-actions");
+      slot.replaceChildren(button, alternatives);
       slot.hidden = false;
     } catch {
       // A hint must never interrupt editing or saving a workout.

@@ -25,7 +25,7 @@
 
 {% macro exercise_hint(name) -%}
 {% set hint = name|exercise_hint %}
-{% if hint %}<button type="button" class="exercise-hint-button" data-exercise-hint-detail="{{ hint|tojson|forceescape }}" aria-label="{{ tr('View form for {v0}', v0=(name)) }}" aria-haspopup="dialog">{{ tr('View form') }}</button>{% endif %}
+{% if hint %}<span class="exercise-hint-actions"><button type="button" class="exercise-hint-button" data-exercise-hint-detail="{{ hint|tojson|forceescape }}" aria-label="{{ tr('View form for {v0}', v0=(name)) }}" aria-haspopup="dialog">{{ tr('View form') }}</button><button type="button" class="exercise-hint-button" data-exercise-alternatives="{{ hint.name }}" aria-label="{{ tr('Find alternatives for {name}', name=(name|workout_text)) }}" aria-haspopup="dialog">{{ tr('Alternatives') }}</button></span>{% endif %}
 {%- endmacro %}
 
 {% macro brand() %}<a class="brand" href="{{ url_for('main.home') }}" aria-label="{{ tr('EVOLVE homepage') }}"><svg width="27" height="30" viewBox="0 0 27 30" fill="none" aria-hidden="true"><path d="M24 3H3v24h21M3 14h16" stroke="currentColor" stroke-width="6"/></svg><span>evolve<span class="brand-dot">.</span></span></a>{% endmacro %}
