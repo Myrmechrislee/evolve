@@ -1,0 +1,4462 @@
+{
+  "version": 1,
+  "sources": {
+    "library": {
+      "url": "https://github.com/yuhonas/free-exercise-db",
+      "description": "Bundled exercise identity, equipment, category, and form instructions."
+    },
+    "ebben2011": {
+      "url": "https://pubmed.ncbi.nlm.nih.gov/21873902/",
+      "description": "Table 1: regular push-up 64%, hands elevated 30.48 cm 55%, feet elevated 30.48 cm 70%. Peak-force coefficients are used as tracking estimates, not personalized measurements."
+    },
+    "hevy": {
+      "url": "https://help.hevyapp.com/hc/en-us/articles/38387131819799-Weighted-Bodyweight-Exercises-Is-Bodyweight-Included-in-Volume",
+      "description": "Full-bodyweight convention for pull-ups and chin-ups."
+    },
+    "kinoku": {
+      "url": "https://kinoku.app/learn/bodyweight-load-explained",
+      "description": "Published tracking estimates: squat 65%, bench dip 65%, parallel dip 98%; partial-body movements without a measured coefficient use an estimated 70% fallback."
+    },
+    "kinoku_table": {
+      "url": "https://kinoku.app/learn/relative-strength-bodyweight-load",
+      "description": "Published estimates: inverted row 55%, pistol squat 95%, pike push-up 80%."
+    },
+    "segments": {
+      "url": "https://simtk.org/docman/view.php/124/525/NeuromuscularBiomechanicsInertialPropertiesHandout.pdf",
+      "description": "Dempster segment fractions: one leg 16.1%, both legs 32.2%, head and trunk 57.8%. Application to exercises is an EVOLVE estimate, not a measured resistance coefficient."
+    },
+    "evolve": {
+      "path": "evolve/data/README.md",
+      "description": "EVOLVE full-body movement tracking convention; an estimate, not an experimentally measured exercise coefficient."
+    }
+  },
+  "profiles": {
+    "external": {
+      "bodyweight_percent": 100,
+      "source": "library",
+      "basis": "External resistance; bodyweight percentage is inactive."
+    },
+    "whole_body": {
+      "bodyweight_percent": 100,
+      "source": "hevy",
+      "basis": "Full-bodyweight tracking convention."
+    },
+    "partial": {
+      "bodyweight_percent": 70,
+      "source": "kinoku",
+      "basis": "Fallback tracking estimate for a partial-body movement."
+    },
+    "pushup": {
+      "bodyweight_percent": 64,
+      "source": "ebben2011",
+      "basis": "Research-derived peak-force coefficient used as a tracking estimate."
+    },
+    "incline_pushup": {
+      "bodyweight_percent": 55,
+      "source": "ebben2011",
+      "basis": "Estimate assumes hands raised about 30 cm; setup changes the fraction."
+    },
+    "decline_pushup": {
+      "bodyweight_percent": 70,
+      "source": "ebben2011",
+      "basis": "Estimate assumes feet raised about 30 cm; setup changes the fraction."
+    },
+    "plank": {
+      "bodyweight_percent": 64,
+      "source": "ebben2011",
+      "basis": "EVOLVE estimate using standard push-up support as a reference for a prone hold."
+    },
+    "squat": {
+      "bodyweight_percent": 65,
+      "source": "kinoku",
+      "basis": "Published tracking estimate; not a measured fraction for this athlete."
+    },
+    "bench_dip": {
+      "bodyweight_percent": 65,
+      "source": "kinoku",
+      "basis": "Published tracking estimate with feet supported."
+    },
+    "dip": {
+      "bodyweight_percent": 98,
+      "source": "kinoku",
+      "basis": "Published tracking estimate for suspended dips."
+    },
+    "row": {
+      "bodyweight_percent": 55,
+      "source": "kinoku_table",
+      "basis": "Published tracking estimate; body angle changes the fraction."
+    },
+    "pistol": {
+      "bodyweight_percent": 95,
+      "source": "kinoku_table",
+      "basis": "Published tracking estimate for a single-leg squat."
+    },
+    "legs": {
+      "bodyweight_percent": 32.2,
+      "source": "segments",
+      "basis": "EVOLVE estimate from the mass of both legs."
+    },
+    "leg": {
+      "bodyweight_percent": 16.1,
+      "source": "segments",
+      "basis": "EVOLVE estimate from the mass of one leg."
+    },
+    "torso": {
+      "bodyweight_percent": 57.8,
+      "source": "segments",
+      "basis": "EVOLVE estimate from head and trunk segment mass."
+    },
+    "mobility": {
+      "bodyweight_percent": 10,
+      "source": "kinoku",
+      "basis": "Low-load mobility tracking estimate, not measured supported bodyweight."
+    },
+    "moving_body": {
+      "bodyweight_percent": 100,
+      "source": "evolve",
+      "basis": "EVOLVE estimate counting the moving body for jumps or an unsupported handstand push-up."
+    }
+  },
+  "exercises": {
+    "3_4_Sit-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "90_90_Hamstring": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Ab_Crunch_Machine": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Ab_Roller": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Adductor": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Adductor_Groin": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Advanced_Kettlebell_Windmill": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Air_Bike": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "All_Fours_Quad_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Alternate_Hammer_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternate_Heel_Touchers": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Alternate_Incline_Dumbbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternate_Leg_Diagonal_Bound": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Alternating_Cable_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternating_Deltoid_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternating_Floor_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternating_Hang_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternating_Kettlebell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternating_Kettlebell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Alternating_Renegade_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Ankle_Circles": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Ankle_On_The_Knee": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Anterior_Tibialis-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Anti-Gravity_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Arm_Circles": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Arnold_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Around_The_Worlds": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Atlas_Stone_Trainer": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Atlas_Stones": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Axle_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Back_Flyes_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Backward_Drag": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Backward_Medicine_Ball_Throw": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Balance_Board": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Ball_Leg_Curl": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Band_Assisted_Pull-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Band_Good_Morning": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Band_Good_Morning_Pull_Through": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Band_Hip_Adductions": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Band_Pull_Apart": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Band_Skull_Crusher": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Ab_Rollout": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Ab_Rollout_-_On_Knees": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Bench_Press_-_Medium_Grip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Curls_Lying_Against_An_Incline": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Full_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Glute_Bridge": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Guillotine_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Hack_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Hip_Thrust": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Incline_Bench_Press_-_Medium_Grip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Incline_Shoulder_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Lunge": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Rear_Delt_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Rollout_from_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Seated_Calf_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Shrug_Behind_The_Back": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Side_Bend": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Side_Split_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Squat_To_A_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Step_Ups": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Barbell_Walking_Lunge": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Battling_Ropes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bear_Crawl_Sled_Drags": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Behind_Head_Chest_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Bench_Dips": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "bench_dip"
+    },
+    "Bench_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Bench_Press_-_Powerlifting": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bench_Press_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bench_Press_with_Chains": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bench_Sprint": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Bent-Arm_Barbell_Pullover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent-Arm_Dumbbell_Pullover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent-Knee_Hip_Raise": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Bent_Over_Barbell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent_Over_Dumbbell_Rear_Delt_Raise_With_Head_On_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent_Over_Low-Pulley_Side_Lateral": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent_Over_One-Arm_Long_Bar_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent_Over_Two-Arm_Long_Bar_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent_Over_Two-Dumbbell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent_Over_Two-Dumbbell_Row_With_Palms_In": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bent_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bicycling": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "partial"
+    },
+    "Bicycling_Stationary": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Board_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Body-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Body_Tricep_Press": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Bodyweight_Flyes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bodyweight_Mid_Row": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "row"
+    },
+    "Bodyweight_Squat": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "squat"
+    },
+    "Bodyweight_Walking_Lunge": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "squat"
+    },
+    "Bosu_Ball_Cable_Crunch_With_Side_Bends": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bottoms-Up_Clean_From_The_Hang_Position": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Bottoms_Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Box_Jump_Multiple_Response": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Box_Skip": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Box_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Box_Squat_with_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Box_Squat_with_Chains": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Brachialis-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Bradford_Rocky_Presses": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Butt-Ups": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Butt_Lift_Bridge": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Butterfly": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Chest_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Crossover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Crunch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Deadlifts": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Hammer_Curls_-_Rope_Attachment": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Hip_Adduction": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Incline_Pushdown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Incline_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Internal_Rotation": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Iron_Cross": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Judo_Flip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Lying_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_One_Arm_Tricep_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Preacher_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Rear_Delt_Fly": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Reverse_Crunch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Rope_Overhead_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Rope_Rear-Delt_Rows": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Russian_Twists": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Seated_Crunch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Seated_Lateral_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Shrugs": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cable_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Calf-Machine_Shoulder_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Calf_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Calf_Press_On_The_Leg_Press_Machine": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Calf_Raise_On_A_Dumbbell": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Calf_Raises_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Calf_Stretch_Elbows_Against_Wall": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Calf_Stretch_Hands_Against_Wall": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Calves-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Car_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Car_Drivers": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Carioca_Quick_Step": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Cat_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Catch_and_Overhead_Throw": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chain_Handle_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chain_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chair_Leg_Extended_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Chair_Lower_Back_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Chair_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chair_Upper_Body_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Chest_And_Front_Of_Shoulder_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Chest_Push_from_3_point_stance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chest_Push_multiple_response": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chest_Push_single_response": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chest_Push_with_Run_Release": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Chest_Stretch_on_Stability_Ball": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Childs_Pose": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Chin-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Chin_To_Chest_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Circus_Bell": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clean_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clean_Pull": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clean_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clean_and_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clean_and_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clean_from_Blocks": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Clock_Push-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Close-Grip_Barbell_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Close-Grip_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Close-Grip_EZ-Bar_Curl_with_Band": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Close-Grip_EZ-Bar_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Close-Grip_EZ_Bar_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Close-Grip_Front_Lat_Pulldown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Close-Grip_Push-Up_off_of_a_Dumbbell": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Close-Grip_Standing_Barbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cocoons": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Conans_Wheel": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Concentration_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cross-Body_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Cross_Body_Hammer_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Cross_Over_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Crossover_Reverse_Lunge": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Crucifix": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Crunch_-_Hands_Overhead": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Crunch_-_Legs_On_Exercise_Ball": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Crunches": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Cuban_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dancers_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Dead_Bug": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Deadlift_with_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Deadlift_with_Chains": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Decline_Barbell_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Decline_Close-Grip_Bench_To_Skull_Crusher": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Decline_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Decline_Dumbbell_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Decline_Dumbbell_Flyes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Decline_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Decline_EZ_Bar_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Decline_Oblique_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Decline_Push-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "decline_pushup"
+    },
+    "Decline_Reverse_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Decline_Smith_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Deficit_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Depth_Jump_Leap": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Dip_Machine": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dips_-_Chest_Version": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "dip"
+    },
+    "Dips_-_Triceps_Version": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "dip"
+    },
+    "Donkey_Calf_Raises": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Double_Kettlebell_Alternating_Hang_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Double_Kettlebell_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Double_Kettlebell_Push_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Double_Kettlebell_Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Double_Kettlebell_Windmill": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Double_Leg_Butt_Kick": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Downward_Facing_Balance": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Drag_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Drop_Push": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Dumbbell_Alternate_Bicep_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Bench_Press_with_Neutral_Grip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Bicep_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Floor_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Flyes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Incline_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Incline_Shoulder_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Lunges": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Lying_One-Arm_Rear_Lateral_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Lying_Pronation": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Lying_Rear_Lateral_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Lying_Supination": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_One-Arm_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_One-Arm_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_One-Arm_Upright_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Prone_Incline_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Rear_Lunge": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Scaption": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Seated_Box_Jump": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Seated_One-Leg_Calf_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Side_Bend": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Squat_To_A_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Step_Ups": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dumbbell_Tricep_Extension_-Pronated_Grip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Dynamic_Back_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Dynamic_Chest_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "EZ-Bar_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "EZ-Bar_Skullcrusher": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Elbow_Circles": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Elbow_to_Knee": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Elbows_Back": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Elevated_Back_Lunge": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Elevated_Cable_Rows": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Elliptical_Trainer": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Exercise_Ball_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Exercise_Ball_Pull-In": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Extended_Range_One-Arm_Kettlebell_Floor_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "External_Rotation": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "External_Rotation_with_Band": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "External_Rotation_with_Cable": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Face_Pull": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Farmers_Walk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Fast_Skipping": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Finger_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Flat_Bench_Cable_Flyes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Flat_Bench_Leg_Pull-In": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Flat_Bench_Lying_Leg_Raise": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Flexor_Incline_Dumbbell_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Floor_Glute-Ham_Raise": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Floor_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Floor_Press_with_Chains": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Flutter_Kicks": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Foot-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Forward_Drag_with_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Frankenstein_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Freehand_Jump_Squat": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "squat"
+    },
+    "Frog_Hops": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Frog_Sit-Ups": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Front_Barbell_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Barbell_Squat_To_A_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Box_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Front_Cable_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Cone_Hops_or_hurdle_hops": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Front_Dumbbell_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Incline_Dumbbell_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Leg_Raises": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Front_Plate_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Raise_And_Pullover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Squat_Clean_Grip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Squats_With_Two_Kettlebells": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Front_Two-Dumbbell_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Full_Range-Of-Motion_Lat_Pulldown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Gironda_Sternum_Chins": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Glute_Ham_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Glute_Kickback": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "leg"
+    },
+    "Goblet_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Good_Morning": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Good_Morning_off_Pins": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Gorilla_Chin_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Groin_and_Back_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Groiners": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Hack_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hammer_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hammer_Grip_Incline_DB_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hamstring-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Hamstring_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Handstand_Push-Ups": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Hang_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hang_Clean_-_Below_the_Knees": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hang_Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hang_Snatch_-_Below_Knees": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hanging_Bar_Good_Morning": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hanging_Leg_Raise": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Hanging_Pike": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Heaving_Snatch_Balance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Heavy_Bag_Thrust": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "High_Cable_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hip_Circles_prone": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Hip_Extension_with_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hip_Flexion_with_Band": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hip_Lift_with_Band": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Hug_A_Ball": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Hug_Knees_To_Chest": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Hurdle_Hops": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Hyperextensions_Back_Extensions": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Hyperextensions_With_No_Hyperextension_Bench": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "IT_Band_and_Glute_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Iliotibial_Tract-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Inchworm": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Incline_Barbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Bench_Pull": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Cable_Chest_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Cable_Flye": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Dumbbell_Bench_With_Palms_Facing_In": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Dumbbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Dumbbell_Flyes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Dumbbell_Flyes_-_With_A_Twist": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Hammer_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Inner_Biceps_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Incline_Push-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "incline_pushup"
+    },
+    "Incline_Push-Up_Close-Grip": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "incline_pushup"
+    },
+    "Incline_Push-Up_Depth_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "incline_pushup"
+    },
+    "Incline_Push-Up_Medium": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "incline_pushup"
+    },
+    "Incline_Push-Up_Reverse_Grip": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "incline_pushup"
+    },
+    "Incline_Push-Up_Wide": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "incline_pushup"
+    },
+    "Intermediate_Groin_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Intermediate_Hip_Flexor_and_Quad_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Internal_Rotation_with_Band": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Inverted_Row": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "row"
+    },
+    "Inverted_Row_with_Straps": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "row"
+    },
+    "Iron_Crosses_stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Isometric_Chest_Squeezes": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "moving_body"
+    },
+    "Isometric_Neck_Exercise_-_Front_And_Back": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "partial"
+    },
+    "Isometric_Neck_Exercise_-_Sides": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "partial"
+    },
+    "Isometric_Wipers": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "JM_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Jackknife_Sit-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Janda_Sit-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Jefferson_Squats": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Jerk_Balance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Jerk_Dip_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Jogging_Treadmill": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Keg_Load": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Arnold_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Dead_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Figure_8": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Hang_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_One-Legged_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Pass_Between_The_Legs": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Pirate_Ships": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Pistol_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Seated_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Seesaw_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Sumo_High_Pull": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Thruster": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Turkish_Get-Up_Lunge_style": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Turkish_Get-Up_Squat_style": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kettlebell_Windmill": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kipping_Muscle_Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Knee_Across_The_Body": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Knee_Circles": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Knee_Hip_Raise_On_Parallel_Bars": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Knee_Tuck_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Kneeling_Arm_Drill": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Kneeling_Cable_Crunch_With_Alternating_Oblique_Twists": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kneeling_Cable_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kneeling_Forearm_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Kneeling_High_Pulley_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kneeling_Hip_Flexor": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Kneeling_Jump_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kneeling_Single-Arm_High_Pulley_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Kneeling_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Landmine_180s": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Landmine_Linear_Jammer": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lateral_Bound": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Lateral_Box_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Lateral_Cone_Hops": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Lateral_Raise_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Latissimus_Dorsi-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Leg-Over_Floor_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leg-Up_Hamstring_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Leg_Extensions": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leg_Lift": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Leg_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leg_Pull-In": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Leverage_Chest_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leverage_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leverage_Decline_Chest_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leverage_High_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leverage_Incline_Chest_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leverage_Iso_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leverage_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Leverage_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Linear_3-Part_Start_Technique": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Linear_Acceleration_Wall_Drill": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Linear_Depth_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Log_Lift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "London_Bridges": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Looking_At_Ceiling": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Low_Cable_Crossover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Low_Cable_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Low_Pulley_Row_To_Neck": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lower_Back-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Lower_Back_Curl": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Lunge_Pass_Through": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lunge_Sprint": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Bent_Leg_Groin": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Lying_Cable_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Cambered_Barbell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Close-Grip_Bar_Curl_On_High_Pulley": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Close-Grip_Barbell_Triceps_Press_To_Chin": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Crossover": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Lying_Dumbbell_Tricep_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Face_Down_Plate_Neck_Resistance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Face_Up_Plate_Neck_Resistance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Glute": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Lying_Hamstring": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Lying_High_Bench_Barbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Leg_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Machine_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_One-Arm_Lateral_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Prone_Quadriceps": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Lying_Rear_Delt_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Supine_Dumbbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_T-Bar_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Lying_Triceps_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Machine_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Machine_Bicep_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Machine_Preacher_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Machine_Shoulder_Military_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Machine_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Medicine_Ball_Chest_Pass": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Medicine_Ball_Full_Twist": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Medicine_Ball_Scoop_Throw": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Middle_Back_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Middle_Back_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Mixed_Grip_Chin": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Monster_Walk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Mountain_Climbers": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Moving_Claw_Series": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Muscle_Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Muscle_Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Narrow_Stance_Hack_Squats": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Narrow_Stance_Leg_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Narrow_Stance_Squats": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Natural_Glute_Ham_Raise": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Neck-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Neck_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Oblique_Crunches": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Oblique_Crunches_-_On_The_Floor": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Olympic_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "On-Your-Back_Quad_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "On_Your_Side_Quad_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "One-Arm_Dumbbell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Flat_Bench_Dumbbell_Flye": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_High-Pulley_Cable_Side_Bends": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Incline_Lateral_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Clean_and_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Floor_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Military_Press_To_The_Side": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Para_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Push_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Split_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Kettlebell_Split_Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Long_Bar_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Medicine_Ball_Slam": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Open_Palm_Kettlebell_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Overhead_Kettlebell_Squats": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Side_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Arm_Side_Laterals": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One-Legged_Cable_Kickback": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One_Arm_Against_Wall": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "One_Arm_Chin-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "One_Arm_Dumbbell_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One_Arm_Dumbbell_Preacher_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One_Arm_Floor_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One_Arm_Lat_Pulldown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One_Arm_Pronated_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One_Arm_Supinated_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "One_Half_Locust": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "One_Handed_Hang": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "One_Knee_To_Chest": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "One_Leg_Barbell_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Open_Palm_Kettlebell_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Otis-Up": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Overhead_Cable_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Overhead_Lat": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Overhead_Slam": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Overhead_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Overhead_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Overhead_Triceps": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Pallof_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Pallof_Press_With_Rotation": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Palms-Down_Wrist_Curl_Over_A_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Palms-Up_Barbell_Wrist_Curl_Over_A_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Parallel_Bar_Dip": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "dip"
+    },
+    "Pelvic_Tilt_Into_Bridge": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Peroneals-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Peroneals_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Physioball_Hip_Bridge": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Pin_Presses": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Piriformis-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Plank": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "plank"
+    },
+    "Plate_Pinch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Plate_Twist": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Platform_Hamstring_Slides": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Plie_Dumbbell_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Plyo_Kettlebell_Pushups": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Plyo_Push-up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Posterior_Tibialis_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Power_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Power_Clean_from_Blocks": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Power_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Power_Partials": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Power_Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Power_Snatch_from_Blocks": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Power_Stairs": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Preacher_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Preacher_Hammer_Dumbbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Press_Sit-Up": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Prone_Manual_Hamstring": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Prowler_Sprint": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Pull_Through": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Pullups": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Push-Up_Wide": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Push-Ups_-_Close_Triceps_Position": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Push-Ups_With_Feet_Elevated": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "decline_pushup"
+    },
+    "Push-Ups_With_Feet_On_An_Exercise_Ball": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "decline_pushup"
+    },
+    "Push_Press_-_Behind_the_Neck": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Push_Up_to_Side_Plank": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Pushups": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Pushups_Close_and_Wide_Hand_Positions": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Pyramid": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Quad_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Quadriceps-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Quick_Leap": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Rack_Delivery": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rack_Pull_with_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rack_Pulls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rear_Leg_Raises": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Recumbent_Bike": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Return_Push_from_Stance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Band_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Band_Box_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Band_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Band_Power_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Band_Sumo_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Barbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Barbell_Preacher_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Cable_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Reverse_Flyes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Flyes_With_External_Rotation": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Grip_Bent-Over_Rows": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Grip_Triceps_Pushdown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Hyperextension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Machine_Flyes": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Plate_Curls": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Reverse_Triceps_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rhomboids-SMR": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Rickshaw_Carry": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rickshaw_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Ring_Dips": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "dip"
+    },
+    "Rocket_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Rocking_Standing_Calf_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rocky_Pull-Ups_Pulldowns": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Romanian_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Romanian_Deadlift_from_Deficit": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rope_Climb": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Rope_Crunch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Rope_Jumping": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "partial"
+    },
+    "Rope_Straight-Arm_Pulldown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Round_The_World_Shoulder_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Rowing_Stationary": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Runners_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Running_Treadmill": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Russian_Twist": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Sandbag_Load": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Scapular_Pull-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Scissor_Kick": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Scissors_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Seated_Band_Hamstring_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Barbell_Military_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Barbell_Twist": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Bent-Over_One-Arm_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Bent-Over_Rear_Delt_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Biceps": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Cable_Rows": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Cable_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Calf_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Calf_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Close-Grip_Concentration_Barbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Dumbbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Dumbbell_Inner_Biceps_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Dumbbell_Palms-Down_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Dumbbell_Palms-Up_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Flat_Bench_Leg_Pull-In": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Seated_Floor_Hamstring_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Front_Deltoid": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Glute": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Good_Mornings": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Hamstring": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Hamstring_and_Calf_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Head_Harness_Neck_Resistance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Leg_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Leg_Tucks": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Seated_One-Arm_Dumbbell_Palms-Down_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_One-arm_Cable_Pulley_Rows": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Overhead_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Seated_Palm-Up_Barbell_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Palms-Down_Barbell_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Side_Lateral_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Triceps_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Seated_Two-Arm_Palms-Up_Low-Pulley_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "See-Saw_Press_Alternating_Side_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Shotgun_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Shoulder_Circles": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Shoulder_Press_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Shoulder_Raise": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Shoulder_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Side-Lying_Floor_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Side_Hop-Sprint": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Side_Lateral_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Side_Laterals_to_Front_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Side_Leg_Raises": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Side_Lying_Groin_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Side_Neck_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Side_Standing_Long_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Side_To_Side_Chins": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Side_Wrist_Pull": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Side_to_Side_Box_Shuffle": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Single-Arm_Cable_Crossover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Single-Arm_Linear_Jammer": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Single-Arm_Push-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Single-Cone_Sprint_Drill": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Single-Leg_High_Box_Squat": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pistol"
+    },
+    "Single-Leg_Hop_Progression": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Single-Leg_Lateral_Hop": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Single-Leg_Leg_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Single-Leg_Stride_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Single_Dumbbell_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Single_Leg_Butt_Kick": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Single_Leg_Glute_Bridge": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Single_Leg_Push-off": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Sit-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Sit_Squats": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Skating": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "partial"
+    },
+    "Sled_Drag_-_Harness": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sled_Overhead_Backward_Walk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sled_Overhead_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sled_Push": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sled_Reverse_Flye": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sled_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sledgehammer_Swings": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Incline_Shoulder_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Behind_the_Back_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Bent_Over_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Calf_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Close-Grip_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Decline_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Hang_Power_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Hip_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Incline_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Leg_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_One-Arm_Upright_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Overhead_Shoulder_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Pistol_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Reverse_Calf_Raises": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Stiff-Legged_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Machine_Upright_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Smith_Single-Leg_Split_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Snatch_Balance": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Snatch_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Snatch_Pull": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Snatch_Shrug": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Snatch_from_Blocks": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Speed_Band_Overhead_Triceps": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Speed_Box_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Speed_Squats": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Spell_Caster": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Spider_Crawl": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Spider_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Spinal_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Split_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Split_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Split_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Split_Snatch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Split_Squat_with_Dumbbells": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Split_Squats": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Squat_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Squat_with_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Squat_with_Chains": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Squat_with_Plate_Movers": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Squats_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Stairmaster": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Standing_Alternating_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Barbell_Calf_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Barbell_Press_Behind_Neck": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Bent-Over_One-Arm_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Biceps_Cable_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Biceps_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Bradford_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Cable_Chest_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Cable_Lift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Cable_Wood_Chop": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Calf_Raises": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Concentration_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Dumbbell_Calf_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Dumbbell_Reverse_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Dumbbell_Straight-Arm_Front_Delt_Raise_Above_Head": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Dumbbell_Upright_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Elevated_Quad_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Front_Barbell_Raise_Over_Head": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Gastrocnemius_Calf_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Hamstring_and_Calf_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Hip_Circles": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Hip_Flexors": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Inner-Biceps_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Lateral_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Leg_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Long_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Standing_Low-Pulley_Deltoid_Raise": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Low-Pulley_One-Arm_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Military_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Olympic_Plate_Hand_Squeeze": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_One-Arm_Cable_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_One-Arm_Dumbbell_Curl_Over_Incline_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_One-Arm_Dumbbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Overhead_Barbell_Triceps_Extension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Palm-In_One-Arm_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Palms-In_Dumbbell_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Pelvic_Tilt": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Rope_Crunch": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Standing_Soleus_And_Achilles_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Toe_Touches": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Standing_Towel_Triceps_Extension": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Standing_Two-Arm_Overhead_Throw": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Star_Jump": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Step-up_with_Knee_Raise": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Step_Mill": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Stiff-Legged_Barbell_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Stiff-Legged_Dumbbell_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Stiff_Leg_Barbell_Good_Morning": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Stomach_Vacuum": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Straight-Arm_Dumbbell_Pullover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Straight-Arm_Pulldown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Straight_Bar_Bench_Mid_Rows": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Straight_Raises_on_Incline_Bench": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Stride_Jump_Crossover": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "moving_body"
+    },
+    "Sumo_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sumo_Deadlift_with_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Sumo_Deadlift_with_Chains": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Superman": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Supine_Chest_Throw": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Supine_One-Arm_Overhead_Throw": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Supine_Two-Arm_Overhead_Throw": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Suspended_Fallout": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Suspended_Push-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "pushup"
+    },
+    "Suspended_Reverse_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "legs"
+    },
+    "Suspended_Row": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "row"
+    },
+    "Suspended_Split_Squat": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "squat"
+    },
+    "Svend_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "T-Bar_Row_with_Handle": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Tate_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "The_Straddle": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Thigh_Abductor": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Thigh_Adductor": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Tire_Flip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Toe_Touchers": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Torso_Rotation": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Trail_Running_Walking": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "partial"
+    },
+    "Trap_Bar_Deadlift": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Tricep_Dumbbell_Kickback": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Tricep_Side_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Triceps_Overhead_Extension_with_Rope": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Triceps_Pushdown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Triceps_Pushdown_-_Rope_Attachment": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Triceps_Pushdown_-_V-Bar_Attachment": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Triceps_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Tuck_Crunch": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "torso"
+    },
+    "Two-Arm_Dumbbell_Preacher_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Two-Arm_Kettlebell_Clean": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Two-Arm_Kettlebell_Jerk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Two-Arm_Kettlebell_Military_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Two-Arm_Kettlebell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Underhand_Cable_Pulldowns": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Upper_Back-Leg_Grab": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Upper_Back_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Upright_Barbell_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Upright_Cable_Row": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Upright_Row_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Upward_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "V-Bar_Pulldown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "V-Bar_Pullup": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Vertical_Swing": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Walking_Treadmill": {
+      "load_type": "weighted",
+      "measurement": "time",
+      "profile": "external"
+    },
+    "Weighted_Ball_Hyperextension": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Ball_Side_Bend": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Bench_Dip": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Crunches": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Jump_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Pull_Ups": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Sissy_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Sit-Ups_-_With_Bands": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Weighted_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide-Grip_Barbell_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide-Grip_Decline_Barbell_Bench_Press": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide-Grip_Decline_Barbell_Pullover": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide-Grip_Lat_Pulldown": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide-Grip_Pulldown_Behind_The_Neck": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide-Grip_Rear_Pull-Up": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "whole_body"
+    },
+    "Wide-Grip_Standing_Barbell_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide_Stance_Barbell_Squat": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wide_Stance_Stiff_Legs": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wind_Sprints": {
+      "load_type": "bodyweight",
+      "measurement": "reps",
+      "profile": "partial"
+    },
+    "Windmills": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Worlds_Greatest_Stretch": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Wrist_Circles": {
+      "load_type": "bodyweight",
+      "measurement": "time",
+      "profile": "mobility"
+    },
+    "Wrist_Roller": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Wrist_Rotations_with_Straight_Bar": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Yoke_Walk": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Zercher_Squats": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Zottman_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    },
+    "Zottman_Preacher_Curl": {
+      "load_type": "weighted",
+      "measurement": "reps",
+      "profile": "external"
+    }
+  }
+}

@@ -140,8 +140,12 @@ if (logForm) {
     logForm.elements.namedItem("request_id").value = snapshot.request_id;
     const rows = snapshot.exercises.map((exercise) => {
       const row = rowTemplate.content.firstElementChild.cloneNode(true);
-      for (const [name, key] of Object.entries({ exercise_name: "name", exercise_sets: "sets", exercise_reps: "reps", exercise_weight: "weight_kg" })) {
-        row.querySelector(`[name="${name}"]`).value = exercise[key];
+      row.dataset.inferTracking = "true";
+      for (const [name, key] of Object.entries({ exercise_name: "name", exercise_sets: "sets", exercise_reps: "reps", exercise_weight: "weight_kg", exercise_load_type: "load_type", exercise_measurement: "measurement", exercise_bodyweight_percent: "bodyweight_percent", exercise_duration_seconds: "duration_seconds", exercise_tracking_override: "tracking_override" })) {
+        if (exercise[key] !== undefined) row.querySelector(`[name="${name}"]`).value = exercise[key];
+      }
+      if (exercise.tracking_override === undefined && exercise.load_type && exercise.measurement) {
+        row.querySelector('[name="exercise_tracking_override"]').value = "1";
       }
       const target = targets.get(exercise.name);
       if (target?.targetSets) {
@@ -152,7 +156,7 @@ if (logForm) {
         const repsHint = document.createElement("span");
         repsHint.className = "field-help";
         repsHint.textContent = tr("Target: {reps}", { reps: workoutText(target.targetReps) });
-        row.querySelector('[name="exercise_reps"]').closest("label").append(repsHint);
+        row.querySelector(".exercise-quantity-field").append(repsHint);
       }
       initializeRow(row);
       return row;

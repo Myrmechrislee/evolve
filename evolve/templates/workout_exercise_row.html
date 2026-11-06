@@ -1,7 +1,18 @@
-<div class="log-exercise-row" data-target-sets="{{ item.target_sets|default('') }}" data-target-reps="{{ item.target|default('') }}">
+<div class="log-exercise-row" data-library-known="{{ 'true' if item.library_known else 'false' }}" data-target-sets="{{ item.target_sets|default('') }}" data-target-reps="{{ item.target|default('') }}">
   <div class="exercise-name-field">
     <label>{{ tr('Exercise') }}<input name="exercise_name" data-exercise-name value="{{ item.name }}" required maxlength="100" placeholder="{{ tr('Exercise name') }}"></label>
     <div data-exercise-hint hidden></div>
+    <input type="hidden" name="exercise_tracking_override" value="{{ '1' if item.tracking_override else '0' }}">
+    <details class="exercise-tracking-adjustments" data-tracking-adjustments {% if item.name and not item.library_known %}open{% endif %}>
+      <summary data-tracking-summary>{{ tr('Adjust tracking' if item.library_known or not item.name else 'Set up custom exercise') }}</summary>
+      <p class="field-help" data-custom-tracking-help {% if item.library_known or not item.name %}hidden{% endif %}>{{ tr('This exercise is not in the library. Choose its load type and tracking method.') }}</p>
+      <div class="exercise-tracking-options">
+      <label>{{ tr('Load type') }}<select name="exercise_load_type"><option value="weighted" {% if item.load_type != 'bodyweight' %}selected{% endif %}>{{ tr('External weight') }}</option><option value="bodyweight" {% if item.load_type == 'bodyweight' %}selected{% endif %}>{{ tr('Bodyweight') }}</option></select></label>
+      <label>{{ tr('Track') }}<select name="exercise_measurement"><option value="reps" {% if item.measurement != 'time' %}selected{% endif %}>{{ tr('Reps') }}</option><option value="time" {% if item.measurement == 'time' %}selected{% endif %}>{{ tr('Time') }}</option></select></label>
+      <label class="full-width" data-bodyweight-field {% if item.load_type != 'bodyweight' %}hidden{% endif %}>{{ tr('Bodyweight used (%)') }}<input type="number" inputmode="decimal" name="exercise_bodyweight_percent" value="{{ item.bodyweight_percent|default(100) }}" min="1" max="100" step="0.1" {% if item.load_type == 'bodyweight' %}required{% endif %}><span class="field-help">{{ tr('Percentages are exercise-specific tracking estimates. Changes apply to this workout only.') }}</span></label>
+      </div>
+      <button type="button" class="text-button" data-reset-tracking {% if not item.library_known %}hidden{% endif %}>{{ tr('Use library defaults') }}</button>
+    </details>
   </div>
   <div class="exercise-set-field">
     <label for="{{ row_id }}" data-set-label>{{ tr('Completed sets') }}</label>
@@ -12,7 +23,14 @@
     </div>
     {% if item.target_sets %}<span class="field-help set-target">{{ tr('Target: {v0} set{v1}', v0=(item.target_sets), v1=('s' if item.target_sets != 1 else '')) }}</span>{% endif %}
   </div>
-  <label>{{ tr('Reps / set') }}<input type="number" inputmode="numeric" name="exercise_reps" value="{{ item.reps }}" min="0" max="500" required>{% if item.target %}<span class="field-help">{{ tr('Target: {v0}', v0=(item.target|workout_text)) }}</span>{% endif %}</label>
-  <label>{{ tr('kg / rep') }}<input type="number" inputmode="decimal" name="exercise_weight" value="{{ item.weight_kg }}" min="0" max="1000" step="0.1" required></label>
+  <div class="exercise-quantity-field">
+    <label data-reps-field {% if item.measurement == 'time' %}hidden{% endif %}>{{ tr('Reps / set') }}<input type="number" inputmode="numeric" name="exercise_reps" value="{{ item.reps }}" min="0" max="500" {% if item.measurement != 'time' %}required{% endif %}></label>
+    <label data-time-field {% if item.measurement != 'time' %}hidden{% endif %}>{{ tr('Seconds / set') }}<input type="number" inputmode="numeric" name="exercise_duration_seconds" value="{{ item.duration_seconds|default('') }}" min="1" max="36000" step="1" {% if item.measurement == 'time' %}required{% endif %}></label>
+    {% if item.target %}<span class="field-help">{{ tr('Target: {v0}', v0=(item.target|workout_text)) }}</span>{% endif %}
+  </div>
+  <div class="exercise-load-field">
+    <label data-weight-field {% if item.load_type == 'bodyweight' %}hidden{% endif %}>{{ tr('External weight (kg)') }}<input type="number" inputmode="decimal" name="exercise_weight" value="{{ item.weight_kg }}" min="0" max="1000" step="0.1" {% if item.load_type != 'bodyweight' %}required{% endif %}></label>
+    <output class="field-help" data-effective-load aria-live="polite"></output>
+  </div>
   <button type="button" class="icon-button remove-row" data-remove-row aria-label="{{ tr('Remove exercise') }}">×</button>
 </div>

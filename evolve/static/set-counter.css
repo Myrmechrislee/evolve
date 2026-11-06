@@ -42,6 +42,35 @@
   min-width: 0;
 }
 
+.exercise-tracking-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.exercise-tracking-options label {
+  font-size: 10px;
+}
+
+.exercise-tracking-options select {
+  padding: 8px;
+  font-size: 11px;
+}
+
+.log-exercise-row [hidden] {
+  display: none;
+}
+
+.exercise-quantity-field, .exercise-load-field {
+  min-width: 0;
+}
+
+.exercise-load-field output {
+  display: block;
+  margin-top: 6px;
+}
+
 .exercise-set-field > label {
   margin-bottom: 8px;
 }

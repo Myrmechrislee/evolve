@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% from 'macros.html' import icon, csrf_field %}
 {% block title %}{{ tr('Edit plan' if plan else 'New workout plan') }}{% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='editor.js') }}" defer></script>{% endblock %}
+{% block scripts %}<link rel="stylesheet" href="{{ url_for('static', filename='exercise-tracking.css') }}"><script src="{{ url_for('static', filename='editor.js') }}" defer></script>{% endblock %}
 {% block content %}
 <div class="page-heading"><div><span class="eyebrow">{{ tr('YOUR ROUTINE, YOUR WAY') }}</span><h1>{{ tr('Fine-tune your plan.' if plan else 'Build your next chapter.') }}</h1><p>{{ tr('Choose your days, add your exercises, and make a plan that fits.') }}</p></div><a class="button secondary" href="{{ url_for('plans.detail', plan_id=plan._id) if plan else url_for('plans.index') }}">{{ tr('Cancel') }}</a></div>
 {% if error %}<div class="flash error" role="alert">{{ tr(error) }}</div>{% endif %}

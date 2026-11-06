@@ -264,6 +264,20 @@ def search():
     return jsonify(exercises=results)
 
 
+@bp.get("/api/exercises/tracking")
+@login_required
+def tracking():
+    from .exercise_tracking import tracking_metadata
+
+    name = request.args.get("name", "").strip()
+    if not name or len(name) > 100:
+        abort(400, "Enter an exercise name between 1 and 100 characters.")
+    target = request.args.get("target", "")
+    if len(target) > 40:
+        abort(400, "Enter a target of up to 40 characters.")
+    return jsonify(tracking_metadata(name, target))
+
+
 @bp.get("/api/exercises/hint")
 @login_required
 def hint():

@@ -20,6 +20,7 @@ from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
 from .db import get_db
+from .exercise_tracking import exercise_tracking
 from .exercises import catalogue_exercises, exercise_hint
 from .i18n import get_locale, tr
 from .services import owned_plan, plan_content, save_plan
@@ -37,6 +38,10 @@ AI_LIBRARY = {
 AI_LIBRARY_NAMES = frozenset(exercise["name"] for exercise in AI_LIBRARY.values())
 AI_PLAN_SCHEMA = deepcopy(PLAN_SCHEMA)
 AI_EXERCISE_SCHEMA = AI_PLAN_SCHEMA["properties"]["sessions"]["items"]["properties"]["exercises"]["items"]
+# Keep the provider's strict schema fully required. Tracking is inferred locally
+# from the selected library exercise and its reps/time target.
+for field in ("load_type", "measurement", "bodyweight_percent", "tracking_override"):
+    AI_EXERCISE_SCHEMA["properties"].pop(field)
 AI_EXERCISE_SCHEMA["properties"].pop("name")
 AI_EXERCISE_SCHEMA["properties"]["library_id"] = {"type": "integer", "enum": list(AI_LIBRARY)}
 AI_EXERCISE_SCHEMA["required"] = [
@@ -265,6 +270,18 @@ def chat():
         stage = "plan_validation"
         if result["plan"] is not None:
             result["plan"] = normalize_generated_plan(result["plan"])
+            previous = draft["content"] if draft else plan
+            previous_rows = {
+                row["id"]: row for item in previous["sessions"] for row in item["exercises"]
+            } if previous else {}
+            for item in result["plan"]["sessions"]:
+                for row in item["exercises"]:
+                    old = previous_rows.get(row["id"])
+                    if old and exercise_hint(old["name"]) == exercise_hint(row["name"]):
+                        for field in ("load_type", "bodyweight_percent", "measurement", "tracking_override"):
+                            if field in old and (field != "measurement" or old["reps"] == row["reps"]):
+                                row[field] = old[field]
+                        row["tracking_override"] = exercise_tracking(old)["tracking_override"]
     except (requests.RequestException, ValueError, KeyError, IndexError, TypeError, AttributeError) as error:
         if isinstance(error, requests.exceptions.SSLError):
             stage = "tls_connection"

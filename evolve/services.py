@@ -224,6 +224,8 @@ def dashboard_stats():
         "this_week": len(this_week),
         "minutes": sum(log["duration_minutes"] for log in recent),
         "volume": round(sum(log.get("volume_kg", 0) for log in recent)),
+        "total_seconds": sum(log.get("total_seconds", 0) for log in recent),
+        "load_seconds_kg": round(sum(log.get("load_seconds_kg", 0) for log in recent), 2),
         "chart": chart,
         "chart_max": max(1, max(item["count"] for item in chart)),
         "recent": logs[:5],

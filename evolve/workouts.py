@@ -5,6 +5,7 @@ from flask import Blueprint, abort, flash, g, jsonify, redirect, render_template
 from pymongo.errors import DuplicateKeyError
 
 from .db import get_db
+from .exercise_tracking import duration_seconds, exercise_tracking, tracking_metadata
 from .services import progress, resolve_occurrence
 from .utils import ValidationError, login_required, object_id, user_today, utcnow
 from .validation import DAYS, bounded_number, text
@@ -13,7 +14,33 @@ bp = Blueprint("workouts", __name__, url_prefix="/workouts")
 draft_bp = Blueprint("workout_drafts", __name__, url_prefix="/api/workouts")
 
 DRAFT_FIELDS = {"title": 100, "logged_date": 10, "duration_minutes": 32, "effort": 32, "notes": 3000}
-DRAFT_EXERCISE_FIELDS = {"name": 100, "sets": 32, "reps": 32, "weight_kg": 32}
+DRAFT_EXERCISE_FIELDS = {
+    "name": 100, "sets": 32, "reps": 32, "weight_kg": 32,
+    "load_type": 32, "measurement": 32, "bodyweight_percent": 32, "duration_seconds": 32,
+    "tracking_override": 8,
+}
+EXERCISE_FORM_FIELDS = {
+    "name": "exercise_name", "sets": "exercise_sets", "reps": "exercise_reps",
+    "weight_kg": "exercise_weight", "load_type": "exercise_load_type",
+    "measurement": "exercise_measurement", "bodyweight_percent": "exercise_bodyweight_percent",
+    "duration_seconds": "exercise_duration_seconds",
+    "tracking_override": "exercise_tracking_override",
+}
+
+
+def form_exercise_rows(form, *, validate=False):
+    count = len(form.getlist("exercise_name"))
+    columns = {key: form.getlist(field) for key, field in EXERCISE_FORM_FIELDS.items()}
+    if validate and (
+        not 1 <= count <= 20 or len(columns["sets"]) != count
+        or any(values and len(values) != count for values in columns.values())
+    ):
+        raise ValidationError("Log between 1 and 20 exercises and complete every exercise row.")
+    return [
+        {key: values[index] if index < len(values) else "" for key, values in columns.items()
+         if key != "tracking_override" or values}
+        for index in range(min(count, 20))
+    ]
 
 
 def completed_workout(plan, selected, week, request_id):
@@ -62,7 +89,13 @@ def save():
         rows = payload.get("exercises")
         if not isinstance(rows, list) or not 1 <= len(rows) <= 20:
             raise ValidationError("Keep between 1 and 20 exercises in a workout draft.")
-        exercises = [draft_strings(row, DRAFT_EXERCISE_FIELDS) for row in rows]
+        exercises = []
+        for row in rows:
+            saved_row = draft_strings(row, DRAFT_EXERCISE_FIELDS)
+            for key, default in exercise_tracking(row).items():
+                if key not in row:
+                    saved_row[key] = ("1" if default else "0") if isinstance(default, bool) else str(default)
+            exercises.append(saved_row)
     except (ValidationError, ValueError) as exc:
         abort(422, str(exc) if isinstance(exc, ValidationError) else "Enter a valid workout draft ID.")
     query = {"user_id": g.user["sub"], "occurrence": occurrence}
@@ -107,22 +140,47 @@ def index():
     )
 
 
-def parse_exercises(form):
-    names, sets, reps, weights = [
-        form.getlist(key) for key in ("exercise_name", "exercise_sets", "exercise_reps", "exercise_weight")
-    ]
-    if not 1 <= len(names) <= 20 or not (len(names) == len(sets) == len(reps) == len(weights)):
-        raise ValidationError("Log between 1 and 20 exercises and complete every exercise row.")
+def parse_exercises(form, profile, selected=None):
     result = []
-    for name, count, rep, weight in zip(names, sets, reps, weights, strict=True):
-        result.append(
-            {
-                "name": text(name, "Exercise name", 100, required=True),
-                "sets": bounded_number(count, "Completed sets", 1, 30, integer=True),
-                "reps": bounded_number(rep, "Reps per set", 0, 500, integer=True),
-                "weight_kg": bounded_number(weight, "Weight in kg", 0, 1000),
-            }
+    for row in form_exercise_rows(form, validate=True):
+        target = next((item for item in selected["exercises"] if item["name"] == row["name"]), None) if selected else None
+        tracking = exercise_tracking({**row, "reps": target["reps"] if target else row["reps"]})
+        if tracking["load_type"] not in {"weighted", "bodyweight"}:
+            raise ValidationError("Choose a valid load type.")
+        if tracking["measurement"] not in {"reps", "time"}:
+            raise ValidationError("Choose reps or time for each exercise.")
+        item = {
+            "name": text(row["name"], "Exercise name", 100, required=True),
+            "sets": bounded_number(row["sets"], "Completed sets", 1, 30, integer=True),
+            **tracking,
+            "reps": None,
+            "duration_seconds": None,
+            "bodyweight_kg": None,
+            "bodyweight_percent": None,
+        }
+        metadata = tracking_metadata(item["name"])
+        item.update(
+            library_id=metadata["library_id"],
+            tracking_metadata_version=metadata["metadata_version"],
+            tracking_source="manual" if tracking["tracking_override"] else metadata["source"],
         )
+        if item["load_type"] == "bodyweight":
+            item["bodyweight_kg"] = bounded_number(profile.get("weight_kg"), "Profile bodyweight in kg", 20, 500)
+            percent = tracking["bodyweight_percent"]
+            if tracking["tracking_override"] and "exercise_bodyweight_percent" in form:
+                percent = row["bodyweight_percent"]
+            item["bodyweight_percent"] = bounded_number(percent, "Bodyweight used (%)", 1, 100)
+            item["weight_kg"] = item["bodyweight_kg"] * item["bodyweight_percent"] / 100
+        else:
+            item["weight_kg"] = bounded_number(row["weight_kg"], "Weight in kg", 0, 1000)
+        if item["measurement"] == "time":
+            item["duration_seconds"] = bounded_number(row["duration_seconds"], "Seconds per set", 1, 36000, integer=True)
+        else:
+            item["reps"] = bounded_number(row["reps"], "Reps per set", 0, 500, integer=True)
+        item["volume_kg"] = round(item["sets"] * (item["reps"] or 0) * item["weight_kg"], 2)
+        item["total_seconds"] = item["sets"] * (item["duration_seconds"] or 0)
+        item["load_seconds_kg"] = round(item["total_seconds"] * item["weight_kg"], 2)
+        result.append(item)
     return result
 
 
@@ -145,14 +203,20 @@ def new():
         exercise_rows = []
         for item in selected["exercises"]:
             rep = item["reps"] if item["reps"].isdigit() else ""
+            tracking = exercise_tracking(item)
+            seconds = duration_seconds(item["reps"])
+            if tracking["measurement"] == "time" and rep:
+                seconds = int(rep)
             exercise_rows.append(
                 {
                     "name": item["name"],
                     "sets": 0,
                     "target_sets": item["sets"],
-                    "reps": rep,
+                    "reps": rep if tracking["measurement"] == "reps" else "",
                     "weight_kg": 0,
                     "target": item["reps"],
+                    **tracking,
+                    "duration_seconds": seconds or "",
                 }
             )
     if request.method == "GET":
@@ -173,7 +237,7 @@ def new():
                 raise ValidationError("Choose a workout date from today or earlier.")
             if plan and request.form.get("plan_version") != str(plan["version"]):
                 abort(409, "This plan has changed. Reload the workout form before logging it.")
-            exercise_rows = parse_exercises(request.form)
+            exercise_rows = parse_exercises(request.form, g.user["profile"], selected)
             document = {
                 "user_id": g.user["sub"],
                 "request_id": request_id,
@@ -194,8 +258,11 @@ def new():
                 "notes": text(request.form.get("notes"), "Workout notes", 3000),
                 "exercises": exercise_rows,
                 "volume_kg": round(
-                    sum(item["sets"] * item["reps"] * item["weight_kg"] for item in exercise_rows), 2
+                    sum(item["volume_kg"] for item in exercise_rows), 2
                 ),
+                "schema_version": 2,
+                "total_seconds": sum(item["total_seconds"] for item in exercise_rows),
+                "load_seconds_kg": round(sum(item["load_seconds_kg"] for item in exercise_rows), 2),
                 "created_at": utcnow(),
             }
             get_db().workouts.insert_one(document)
@@ -209,14 +276,7 @@ def new():
                 if isinstance(exc, ValidationError)
                 else "Enter a valid workout date and submit this form again."
             )
-            columns = [
-                request.form.getlist(key)
-                for key in ("exercise_name", "exercise_sets", "exercise_reps", "exercise_weight")
-            ]
-            exercise_rows = [
-                dict(zip(("name", "sets", "reps", "weight_kg"), row, strict=True))
-                for row in list(zip(*columns))[:20]
-            ] or [{"name": "", "sets": 0, "reps": 10, "weight_kg": 0}]
+            exercise_rows = form_exercise_rows(request.form) or [{"name": "", "sets": 0, "reps": 10, "weight_kg": 0}]
         else:
             finish_draft(value, request_id)
             flash("Workout saved. Another step forward.", "success")
@@ -226,6 +286,15 @@ def new():
             target = next((item for item in selected["exercises"] if item["name"] == row["name"]), None)
             if target and "target_sets" not in row:
                 row.update(target_sets=target["sets"], target=target["reps"])
+    for row in exercise_rows:
+        # Also upgrades old drafts for display without rewriting saved history.
+        tracking = exercise_tracking({**row, "reps": row.get("target", row.get("reps", ""))})
+        row.update({key: tracking[key] for key in ("load_type", "measurement", "tracking_override")})
+        if not tracking["tracking_override"] or "bodyweight_percent" not in row:
+            row["bodyweight_percent"] = tracking["bodyweight_percent"]
+        metadata = tracking_metadata(row["name"])
+        row["library_known"] = metadata["known"]
+        row["tracking_basis"] = metadata["basis"]
     plan_tables = []
     for item in get_db().plans.find({"user_id": g.user["sub"]}).sort("updated_at", -1):
         state = progress(item)

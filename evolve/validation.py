@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from jsonschema import Draft202012Validator
 
+from .exercise_tracking import exercise_tracking
 from .i18n import tr
 from .utils import ValidationError
 
@@ -30,6 +31,10 @@ EXERCISE_SCHEMA = {
         "reps": {"type": "string", "minLength": 1, "maxLength": 40},
         "rest_seconds": {"type": "integer", "minimum": 0, "maximum": 600},
         "notes": {"type": "string", "maxLength": 500},
+        "load_type": {"type": "string", "enum": ["weighted", "bodyweight"]},
+        "measurement": {"type": "string", "enum": ["reps", "time"]},
+        "bodyweight_percent": {"type": "number", "minimum": 1, "maximum": 100},
+        "tracking_override": {"type": "boolean"},
     },
     "required": ["id", "name", "sets", "reps", "rest_seconds", "notes"],
 }
@@ -149,5 +154,9 @@ def normalize_plan(payload):
             exercise["name"] = text(exercise["name"], "Exercise name", 100, required=True)
             exercise["reps"] = text(exercise["reps"], "Repetitions or duration", 40, required=True)
             exercise["notes"] = exercise["notes"].strip()
+            exercise.update(exercise_tracking(exercise))
+            exercise["bodyweight_percent"] = bounded_number(
+                exercise["bodyweight_percent"], "Bodyweight used (%)", 1, 100
+            )
     payload["sessions"].sort(key=lambda item: DAYS.index(item["day"]))
     return payload

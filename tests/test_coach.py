@@ -118,6 +118,32 @@ def test_ai_request_contains_the_library_and_constrains_choices(
     assert "name" not in exercise_schema["properties"]
     assert "library_id" not in EXERCISE_SCHEMA["properties"]
     assert "enum" not in EXERCISE_SCHEMA["properties"]["name"]
+    assert set(exercise_schema["required"]) == set(exercise_schema["properties"])
+
+
+@pytest.mark.parametrize("replacement", [False, True])
+def test_ai_revision_preserves_bodyweight_settings_for_retained_exercises(
+    client, db, make_user, make_plan, sign_in, payload, monkeypatch, replacement
+):
+    user = make_user(pro=True)
+    saved = deepcopy(payload)
+    saved["sessions"][0]["exercises"][0].update(
+        name="Plank", reps="30 seconds", load_type="bodyweight", measurement="time", bodyweight_percent=70,
+    )
+    plan = make_plan(user, content=saved)
+    payload["sessions"][0]["exercises"][0].update(
+        name="Pushups" if replacement else "Plank", reps="10" if replacement else "30 seconds",
+    )
+    sign_in(user)
+    fake_response(monkeypatch, payload)
+    response = client.post("/api/coach/chat", json={
+        "message": "Revise my plan", "share_profile": True, "plan_id": str(plan["_id"]),
+    })
+    assert response.status_code == 200
+    exercise = response.json["draft"]["content"]["sessions"][0]["exercises"][0]
+    assert exercise["bodyweight_percent"] == (64 if replacement else 70)
+    assert exercise["measurement"] == ("reps" if replacement else "time")
+    assert db.plans.find_one({"_id": plan["_id"]})["sessions"] == saved["sessions"]
 
 
 @pytest.mark.parametrize("identifier", [-1, 0, 999999, 1.5, "1", None, True])

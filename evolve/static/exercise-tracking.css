@@ -1,0 +1,22 @@
+.exercise-tracking-adjustments {
+  margin-top: 10px;
+  font-size: 11px;
+}
+
+.exercise-tracking-adjustments > summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.exercise-tracking-adjustments > .form-grid {
+  margin-top: 12px;
+}
+
+.exercise-tracking-adjustments > button {
+  margin-top: 10px;
+  font-size: 11px;
+}
+
+.exercise-tracking-adjustments [hidden] {
+  display: none;
+}
