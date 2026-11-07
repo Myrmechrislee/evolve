@@ -1,0 +1,41 @@
+<section class="card muscle-activity" id="muscle-activity" aria-labelledby="muscle-activity-title" data-muscle-activity>
+  <div class="card-heading muscle-heading">
+    <div><span class="eyebrow">{{ tr('YOUR TRAINING, MAPPED') }}</span><h2 id="muscle-activity-title">{{ tr('Muscle activity') }}</h2><p class="small muted">{{ tr('See where your work adds up. Select a muscle to explore.') }}</p></div>
+    <nav class="muscle-periods" aria-label="{{ tr('Muscle activity date range') }}">
+      {% for key, label in muscles.periods.items() %}
+      <a href="{{ url_for('main.dashboard', muscle_period=key, muscle=muscles.active, week=request.args.get('week')) }}#muscle-activity" {% if muscles.period == key %}aria-current="true"{% endif %}>{{ tr(label) }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+  <div class="muscle-overview"><span>{{ tr('{v0} of {v1} muscle groups trained', v0=muscles.trained, v1=muscles.groups|length) }}</span><span>{{ tr('{v0} completed workouts', v0=muscles.workouts) }} · {% if muscles.start %}{{ localdate(muscles.start, '%b %d') }} – {% endif %}{{ localdate(muscles.end, '%b %d, %Y') }}</span></div>
+  {% if not muscles.workouts %}<p class="muscle-empty">{{ tr('Log a workout to start building your muscle map.') }} <a class="text-link" href="{{ url_for('workouts.new') }}">{{ tr('Log a workout') }} {{ icon('arrow') }}</a></p>{% endif %}
+  <div class="muscle-explorer">
+    <div class="muscle-diagram">
+      {% include 'muscle_map.html' %}
+      <div class="muscle-legend" aria-label="{{ tr('Relative activity by completed sets') }}"><span>{{ tr('No activity') }}</span><i data-activity="none"></i><i data-activity="low"></i><i data-activity="medium"></i><i data-activity="high"></i><span>{{ tr('More sets') }}</span></div>
+    </div>
+    <div class="muscle-details" aria-live="polite" aria-atomic="true">
+      {% for group in muscles.groups %}
+      <section id="muscle-stats-{{ group.key }}" data-muscle-panel="{{ group.key }}" aria-labelledby="muscle-name-{{ group.key }}" {% if muscles.active != group.key %}hidden{% endif %}>
+        <span class="eyebrow">{{ tr('MUSCLE BREAKDOWN') }}</span><h3 id="muscle-name-{{ group.key }}">{{ tr(group.label) }}</h3>
+        <p class="muscle-last-trained">{% if group.last_trained %}{{ tr('Last trained {v0}', v0=(group.last_trained|shortdate)) }}{% else %}{{ tr('No logged activity in this period') }}{% endif %}</p>
+        <dl class="muscle-metrics">
+          <div><dt>{{ tr('Completed sets') }}</dt><dd>{{ group.sets }}</dd></div>
+          <div><dt>{{ tr('Workouts') }}</dt><dd>{{ group.workouts }}</dd></div>
+          <div><dt>{{ tr('Primary sets') }}</dt><dd>{{ group.primary_sets }}</dd></div>
+          <div><dt>{{ tr('Supporting sets') }}</dt><dd>{{ group.secondary_sets }}</dd></div>
+          <div><dt>{{ tr('Reps') }}</dt><dd>{{ '{:,}'.format(group.reps) }}</dd></div>
+          <div><dt>{{ tr('Volume (kg)') }}</dt><dd>{{ '{:,.1f}'.format(group.volume_kg) }}</dd></div>
+          {% if group.total_seconds %}<div class="muscle-timed"><dt>{{ tr('Timed work') }}</dt><dd>{{ group.total_seconds }} <small>{{ tr('sec') }}</small></dd></div>{% endif %}
+        </dl>
+        {% if group.exercises %}<div class="muscle-exercise-list"><h4>{{ tr('Exercises logged') }}</h4>{% for name in group.exercises[:5] %}<span>{{ name|workout_text }}</span>{% endfor %}{% if group.exercises|length > 5 %}<span>{{ tr('+ {v0} more', v0=group.exercises|length - 5) }}</span>{% endif %}</div>{% endif %}
+      </section>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="muscle-group-list" aria-label="{{ tr('All muscle groups') }}">
+    {% for group in muscles.groups %}<a class="muscle-group-choice" href="{{ url_for('main.dashboard', muscle_period=muscles.period, muscle=group.key, week=request.args.get('week')) }}#muscle-activity" data-muscle-choice="{{ group.key }}" data-activity="{{ group.activity }}" aria-controls="muscle-stats-{{ group.key }}" {% if muscles.active == group.key %}aria-current="true"{% endif %}><span class="muscle-group-dot" aria-hidden="true"></span><span>{{ tr(group.label) }}</span><strong>{{ tr('{v0} sets', v0=group.sets) }}</strong></a>{% endfor %}
+  </div>
+  <p class="muscle-note">{{ tr('Primary and supporting muscles come from the exercise library or your chosen muscle group. Each involved muscle receives the full sets and volume, so muscle totals overlap.') }}</p>
+  {% if muscles.unassigned %}<p class="muscle-unassigned">{{ tr('{v0} exercise entries have no muscle group and are excluded. Choose a muscle group when logging custom exercises.', v0=muscles.unassigned) }}</p>{% endif %}
+</section>

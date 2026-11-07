@@ -6,6 +6,7 @@ from pymongo.errors import DuplicateKeyError
 
 from .db import get_db
 from .exercise_tracking import duration_seconds, exercise_tracking, tracking_metadata
+from .muscles import MUSCLE_CHOICES, MUSCLE_NAMES, exercise_muscles
 from .services import progress, resolve_occurrence
 from .utils import ValidationError, login_required, object_id, user_today, utcnow
 from .validation import DAYS, bounded_number, text
@@ -18,6 +19,7 @@ DRAFT_EXERCISE_FIELDS = {
     "name": 100, "sets": 32, "reps": 32, "weight_kg": 32,
     "load_type": 32, "measurement": 32, "bodyweight_percent": 32, "duration_seconds": 32,
     "tracking_override": 8,
+    "muscle_group": 32,
 }
 EXERCISE_FORM_FIELDS = {
     "name": "exercise_name", "sets": "exercise_sets", "reps": "exercise_reps",
@@ -25,6 +27,7 @@ EXERCISE_FORM_FIELDS = {
     "measurement": "exercise_measurement", "bodyweight_percent": "exercise_bodyweight_percent",
     "duration_seconds": "exercise_duration_seconds",
     "tracking_override": "exercise_tracking_override",
+    "muscle_group": "exercise_muscle_group",
 }
 
 
@@ -164,6 +167,14 @@ def parse_exercises(form, profile, selected=None):
             tracking_metadata_version=metadata["metadata_version"],
             tracking_source="manual" if tracking["tracking_override"] else metadata["source"],
         )
+        muscle_group = row.get("muscle_group", "")
+        if muscle_group and muscle_group not in MUSCLE_CHOICES:
+            raise ValidationError("Choose a valid muscle group.")
+        item.update(
+            {"primary_muscles": [MUSCLE_NAMES[muscle_group]], "secondary_muscles": []}
+            if muscle_group else exercise_muscles(item)
+        )
+        item["muscle_group"] = muscle_group
         if item["load_type"] == "bodyweight":
             item["bodyweight_kg"] = bounded_number(profile.get("weight_kg"), "Profile bodyweight in kg", 20, 500)
             percent = tracking["bodyweight_percent"]
@@ -312,6 +323,7 @@ def new():
         days=DAYS,
         values=values,
         exercise_rows=exercise_rows,
+        muscle_choices=MUSCLE_CHOICES,
         request_id=request_id,
         error=error,
         draft=draft,

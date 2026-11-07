@@ -23,7 +23,7 @@
   const key = draftKey(form.dataset.draftOwner, occurrence);
   const fields = { title: 100, logged_date: 10, duration_minutes: 32, effort: 32, notes: 3000 };
   const exerciseFields = { name: 100, sets: 32, reps: 32, weight_kg: 32 };
-  const trackingFields = { load_type: 32, measurement: 32, bodyweight_percent: 32, duration_seconds: 32, tracking_override: 8 };
+  const trackingFields = { load_type: 32, measurement: 32, bodyweight_percent: 32, duration_seconds: 32, tracking_override: 8, muscle_group: 32 };
   let latest = null;
   let dirty = false;
   let inFlight = false;
@@ -61,6 +61,7 @@
       bodyweight_percent: row.querySelector('[name="exercise_bodyweight_percent"]').value,
       duration_seconds: row.querySelector('[name="exercise_duration_seconds"]').value,
       tracking_override: row.querySelector('[name="exercise_tracking_override"]').value,
+      muscle_group: row.querySelector('[name="exercise_muscle_group"]').value,
     })),
   });
   const validStrings = (record, limits) => record && typeof record === "object" && !Array.isArray(record)

@@ -141,7 +141,7 @@ if (logForm) {
     const rows = snapshot.exercises.map((exercise) => {
       const row = rowTemplate.content.firstElementChild.cloneNode(true);
       row.dataset.inferTracking = "true";
-      for (const [name, key] of Object.entries({ exercise_name: "name", exercise_sets: "sets", exercise_reps: "reps", exercise_weight: "weight_kg", exercise_load_type: "load_type", exercise_measurement: "measurement", exercise_bodyweight_percent: "bodyweight_percent", exercise_duration_seconds: "duration_seconds", exercise_tracking_override: "tracking_override" })) {
+      for (const [name, key] of Object.entries({ exercise_name: "name", exercise_sets: "sets", exercise_reps: "reps", exercise_weight: "weight_kg", exercise_load_type: "load_type", exercise_measurement: "measurement", exercise_bodyweight_percent: "bodyweight_percent", exercise_duration_seconds: "duration_seconds", exercise_tracking_override: "tracking_override", exercise_muscle_group: "muscle_group" })) {
         if (exercise[key] !== undefined) row.querySelector(`[name="${name}"]`).value = exercise[key];
       }
       if (exercise.tracking_override === undefined && exercise.load_type && exercise.measurement) {

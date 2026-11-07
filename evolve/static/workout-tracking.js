@@ -47,6 +47,7 @@
       state.edited.clear();
       state.name = name;
       field(row, "tracking_override").value = "0";
+      field(row, "muscle_group").value = "";
       row.querySelector("[data-tracking-adjustments]").open = false;
     }
     if (!name || name.length > 100) return;
@@ -119,6 +120,7 @@
     const row = event.target.closest(".log-exercise-row");
     states.get(row).edited.clear();
     field(row, "tracking_override").value = "0";
+    field(row, "muscle_group").value = "";
     infer(row);
   });
   form.addEventListener("invalid", (event) => {

@@ -1,0 +1,49 @@
+{% macro region(key, path, mirror=false) %}
+{% set group = muscles.by_key[key] %}
+<g class="muscle-region" data-muscle-region="{{ key }}" data-activity="{{ group.activity }}" role="button" tabindex="0" aria-controls="muscle-stats-{{ key }}" aria-pressed="{{ 'true' if muscles.active == key else 'false' }}" aria-label="{{ tr('{v0}: {v1} sets', v0=tr(group.label), v1=group.sets) }}">
+  <title>{{ tr('{v0}: {v1} sets', v0=tr(group.label), v1=group.sets) }}</title>
+  <path d="{{ path }}"/>{% if mirror %}<path d="{{ path }}" transform="translate(220 0) scale(-1 1)"/>{% endif %}
+</g>
+{% endmacro %}
+
+{% macro outline() %}
+<g class="muscle-body">
+  <ellipse cx="110" cy="32" rx="19" ry="25"/>
+  <path d="M98 57 L96 72 Q89 77 74 79 Q55 79 48 103 L39 148 L27 192 L20 219 Q14 233 21 236 L30 231 L34 218 L45 196 L58 166 L66 139 L69 173 L65 207 Q57 226 60 252 L63 303 L69 333 Q62 356 69 393 L75 424 L71 438 Q70 445 82 445 L96 445 Q101 441 95 435 L91 423 L96 385 L96 350 L101 325 L107 281 L110 267 L113 281 L119 325 L124 350 L124 385 L129 423 L125 435 Q119 441 124 445 L138 445 Q150 445 149 438 L145 424 L151 393 Q158 356 151 333 L157 303 L160 252 Q163 226 155 207 L151 173 L154 139 L162 166 L175 196 L186 218 L190 231 L199 236 Q206 233 200 219 L193 192 L181 148 L172 103 Q165 79 146 79 Q131 77 124 72 L122 57"/>
+</g>
+{% endmacro %}
+
+<div class="muscle-figures">
+  <figure>
+    <figcaption>{{ tr('Front') }}</figcaption>
+    <svg viewBox="0 0 220 460" class="muscle-body-map" role="group" aria-label="{{ tr('Front muscle groups') }}">
+      {{ outline() }}
+      {{ region('neck', 'M99 61 L107 65 L107 83 L94 77 Z', true) }}
+      {{ region('shoulders', 'M72 83 Q57 82 52 100 L48 119 L65 112 L76 96 Z', true) }}
+      {{ region('chest', 'M78 97 Q92 88 107 91 L107 125 Q93 136 73 125 L68 113 Z', true) }}
+      {{ region('biceps', 'M49 124 L63 118 L61 142 Q58 158 47 164 L41 153 Z', true) }}
+      {{ region('forearms', 'M40 160 L49 169 L40 194 L30 214 L26 211 L30 190 Z', true) }}
+      {{ region('abdominals', 'M94 137 L107 135 L107 151 L94 151 Z M94 155 L107 155 L107 171 L94 171 Z M94 175 L107 175 L107 195 L97 199 Z M75 135 L88 140 L89 177 L96 204 L85 211 L75 183 Z', true) }}
+      {{ region('abductors', 'M69 211 L80 217 L72 254 L64 245 Q62 226 69 211 Z', true) }}
+      {{ region('adductors', 'M87 224 L105 239 L104 268 L98 301 L88 273 L81 250 Z', true) }}
+      {{ region('quadriceps', 'M76 257 L87 282 L97 309 L92 327 L78 328 L69 301 L67 270 Z', true) }}
+    </svg>
+  </figure>
+  <figure>
+    <figcaption>{{ tr('Back') }}</figcaption>
+    <svg viewBox="0 0 220 460" class="muscle-body-map" role="group" aria-label="{{ tr('Back muscle groups') }}">
+      {{ outline() }}
+      {{ region('neck', 'M99 61 L107 64 L107 78 L96 73 Z', true) }}
+      {{ region('traps', 'M96 77 L107 83 L107 133 L91 116 L77 91 Z', true) }}
+      {{ region('shoulders', 'M73 84 L83 95 L72 116 L50 119 L53 101 Q59 83 73 84 Z', true) }}
+      {{ region('triceps', 'M50 124 L64 120 L63 143 L54 165 L42 154 Z', true) }}
+      {{ region('forearms', 'M40 160 L50 169 L40 194 L30 214 L26 211 L30 190 Z', true) }}
+      {{ region('middle-back', 'M87 119 L107 140 L107 166 L91 158 L79 141 Z', true) }}
+      {{ region('lats', 'M72 130 L87 164 L104 175 L96 198 L79 182 L74 159 Z', true) }}
+      {{ region('lower-back', 'M106 178 L106 211 L91 216 L85 196 L97 202 Z', true) }}
+      {{ region('glutes', 'M78 215 L106 219 L107 245 Q91 262 66 246 Q63 229 70 219 Z', true) }}
+      {{ region('hamstrings', 'M66 255 Q88 269 104 254 L98 295 L94 327 L79 329 L70 304 Z', true) }}
+      {{ region('calves', 'M77 338 L91 339 L93 366 L87 400 L78 405 L71 373 Q69 351 77 338 Z', true) }}
+    </svg>
+  </figure>
+</div>
