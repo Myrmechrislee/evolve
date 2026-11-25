@@ -9,6 +9,7 @@ A development Flask app for building a workout routine, logging training, and fo
 - Phone layouts with bottom navigation, a workspace sheet, a daily workout calendar, larger touch controls, and sticky save actions. iPhone safe areas and on-screen keyboards are accounted for; desktop navigation and the full weekly calendar remain available on larger screens.
 - First-login onboarding: birthdate, height, weight, goal, experience, workout preferences, available equipment, training days, session length, timezone, limitations, and a textarea for other specifications. Choose bodyweight exercises only and select any combination of dumbbells, machines, resistance bands, and barbell. Preferences stay editable in the profile and are shared with the Pro AI coach after consent. Existing single-choice equipment profiles remain supported.
 - MongoDB persistence for users, plans, logs, chat history, AI drafts, and per-user AI quotas. The connection string is read from **`MONGO_URL`**.
+- Optional Auth0-protected MCP server for ChatGPT to list, read, create, edit, and delete your workouts and workout plans. See the [complete ChatGPT and Auth0 setup guide](docs/mcp-setup.md).
 - Free and Pro users can create, edit, follow, and delete plans manually. The editor supports 1–52 weeks, up to seven weekly sessions, and exercises with sets, reps or time, rest, and notes.
 - Pro members can generate and revise complete plans by chatting with a ChatGPT model through OpenRouter. Proposed changes remain drafts until explicitly applied. Manual editing is always available.
 - Planned or freestyle workout logging with actual sets, reps, kg, duration, effort, and notes. Pick a planned workout from a table with a row for each week and weekday columns; completed sessions remain marked. Logs include a historical snapshot, so later exercise edits do not rewrite previous training.
@@ -157,6 +158,12 @@ exports.onExecutePostLogin = async (event, api) => {
 
 Set `AUTH0_ROLES_CLAIM` to that exact namespace and `AUTH0_PRO_ROLE=pro`. Roles are read only from the verified OIDC identity. The Auth0 grant is refreshed on each login; the manual grant is independent. Either grant enables Pro unless an admin dashboard membership override is set. Select **Free** in the admin dashboard to revoke Pro immediately, or **Follow Auth0 / CLI grants** to use those grants again. Without an override, fully revoking Pro requires disabling the manual grant, removing the Auth0 role, and having the user sign in again. For production billing, a trusted billing webhook would need to own and synchronize entitlements; payment processing is outside this development app.
 
+## ChatGPT MCP server
+
+Enable `MCP_ENABLED=true` to serve a stateless Streamable HTTP MCP endpoint at `APP_BASE_URL/mcp` in the existing application. It provides ten workout/plan tools, per-user Auth0 access-token verification, separate read/write/delete scopes, create retry protection, and version checks on edits/deletes. Website session cookies cannot authenticate MCP calls. Existing workout history stays intact when a plan is deleted.
+
+Follow [docs/mcp-setup.md](docs/mcp-setup.md) for the exact production URLs, Auth0 API and dedicated OAuth application settings, ChatGPT callbacks/registration, deployment commands, verification requests, examples, and troubleshooting. MCP is disabled by default; your website's existing Auth0 client ID and secret continue to handle website login.
+
 ## OpenRouter AI coach
 
 ```dotenv
@@ -300,6 +307,9 @@ app.py                 Real application entry point
 demo.py                Separate loopback-only sample-data demo
 evolve/__init__.py      App factory, configuration, CSRF, security headers
 evolve/auth.py          Auth0 OIDC flow and session loading
+evolve/mcp.py           MCP Streamable HTTP endpoint and OAuth resource discovery
+evolve/mcp_auth.py      Auth0 JWT verification, scopes and signing-key cache
+evolve/mcp_tools.py     User-owned workout/plan CRUD tool definitions
 evolve/admin.py         Admin dashboard, account/role controls, freeze/delete, audit log
 evolve/analytics.py     Anonymous daily page counters and UTC calendar metrics
 evolve/db.py            Shared MongoDB access and indexes
@@ -316,6 +326,7 @@ evolve/templates/      Jinja pages and shared components
 evolve/static/         CSS, vanilla JS, favicon, and local exercise photos
 tests/                Integration and validation tests
 scripts/              Exercise catalogue refresh utility
+docs/mcp-setup.md      Detailed ChatGPT and Auth0 MCP setup instructions
 ```
 
 Integration references: [Auth0 Flask guide](https://developer.auth0.com/resources/guides/web-app/flask/basic-authentication), [Authlib Flask OIDC](https://docs.authlib.org/en/latest/oauth2/client/web/flask.html), [MongoDB PyMongo connection pools](https://www.mongodb.com/docs/languages/python/pymongo-driver/current/connect/connection-options/connection-pools/), [OpenRouter structured outputs](https://openrouter.ai/docs/guides/features/structured-outputs), [Flask security](https://flask.palletsprojects.com/en/stable/web-security/).

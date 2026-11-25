@@ -195,6 +195,53 @@ def parse_exercises(form, profile, selected=None):
     return result
 
 
+def workout_values(form, *, title=None):
+    """Shared scalar validation, independent of historical exercise snapshots."""
+    logged_date = date.fromisoformat(form.get("logged_date", ""))
+    if logged_date > user_today() or logged_date < date(1900, 1, 1):
+        raise ValidationError("Choose a workout date from today or earlier.")
+    return {
+        "title": title if title is not None else text(form.get("title"), "Workout name", 100, required=True),
+        "logged_date": logged_date.isoformat(),
+        "duration_minutes": bounded_number(form.get("duration_minutes"), "Duration in minutes", 1, 600, integer=True),
+        "effort": bounded_number(form.get("effort"), "Effort", 1, 10, integer=True),
+        "notes": text(form.get("notes"), "Workout notes", 3000),
+    }
+
+
+def workout_totals(exercises):
+    return {
+        "volume_kg": round(sum(item["volume_kg"] for item in exercises), 2),
+        "schema_version": 2,
+        "total_seconds": sum(item["total_seconds"] for item in exercises),
+        "load_seconds_kg": round(sum(item["load_seconds_kg"] for item in exercises), 2),
+    }
+
+
+def workout_document(form, profile, plan, selected, week, request_id):
+    """Validate a completed workout for both browser forms and MCP tools."""
+    UUID(request_id)
+    values = workout_values(form, title=selected["title"] if selected else None)
+    if plan and form.get("plan_version") != str(plan["version"]):
+        abort(409, "This plan has changed. Reload the workout form before logging it.")
+    exercises = parse_exercises(form, profile, selected)
+    return {
+        "user_id": g.user["sub"],
+        "request_id": request_id,
+        "planned": bool(plan),
+        "plan_id": plan["_id"] if plan else None,
+        "plan_name": plan["name"] if plan else "Freestyle workout",
+        "plan_version": plan["version"] if plan else None,
+        "session_id": selected["id"] if selected else None,
+        "week": week,
+        **values,
+        "exercises": exercises,
+        **workout_totals(exercises),
+        "version": 1,
+        "created_at": utcnow(),
+    }
+
+
 @bp.route("/new", methods=["GET", "POST"])
 @login_required
 def new():
@@ -242,40 +289,8 @@ def new():
             exercise_rows = draft["exercises"]
     if request.method == "POST":
         try:
-            UUID(request_id)
-            logged_date = date.fromisoformat(request.form.get("logged_date", ""))
-            if logged_date > user_today() or logged_date < date(1900, 1, 1):
-                raise ValidationError("Choose a workout date from today or earlier.")
-            if plan and request.form.get("plan_version") != str(plan["version"]):
-                abort(409, "This plan has changed. Reload the workout form before logging it.")
-            exercise_rows = parse_exercises(request.form, g.user["profile"], selected)
-            document = {
-                "user_id": g.user["sub"],
-                "request_id": request_id,
-                "planned": bool(plan),
-                "plan_id": plan["_id"] if plan else None,
-                "plan_name": plan["name"] if plan else "Freestyle workout",
-                "plan_version": plan["version"] if plan else None,
-                "session_id": selected["id"] if selected else None,
-                "week": week,
-                "title": selected["title"]
-                if selected
-                else text(request.form.get("title"), "Workout name", 100, required=True),
-                "logged_date": logged_date.isoformat(),
-                "duration_minutes": bounded_number(
-                    request.form.get("duration_minutes"), "Duration in minutes", 1, 600, integer=True
-                ),
-                "effort": bounded_number(request.form.get("effort"), "Effort", 1, 10, integer=True),
-                "notes": text(request.form.get("notes"), "Workout notes", 3000),
-                "exercises": exercise_rows,
-                "volume_kg": round(
-                    sum(item["volume_kg"] for item in exercise_rows), 2
-                ),
-                "schema_version": 2,
-                "total_seconds": sum(item["total_seconds"] for item in exercise_rows),
-                "load_seconds_kg": round(sum(item["load_seconds_kg"] for item in exercise_rows), 2),
-                "created_at": utcnow(),
-            }
+            document = workout_document(request.form, g.user["profile"], plan, selected, week, request_id)
+            exercise_rows = document["exercises"]
             get_db().workouts.insert_one(document)
         except DuplicateKeyError:
             finish_draft(value, request_id)

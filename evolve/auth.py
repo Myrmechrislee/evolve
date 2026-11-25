@@ -1,7 +1,7 @@
 from urllib.parse import urlencode
 
 from authlib.integrations.base_client.errors import MismatchingStateError, OAuthError
-from flask import Blueprint, abort, current_app, flash, g, redirect, session, url_for
+from flask import Blueprint, abort, current_app, flash, g, redirect, request, session, url_for
 from requests.exceptions import RequestException, SSLError
 
 from .db import get_db
@@ -13,6 +13,9 @@ bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 def load_user():
     g.user = None
+    # MCP authenticates only access tokens; browser cookies never select its user.
+    if request.blueprint == "mcp":
+        return
     if session.get("sub"):
         g.user = get_db().users.find_one({"sub": session["sub"]})
         if not g.user or g.user.get("account", {}).get("status") == "deleted":

@@ -21,7 +21,7 @@ def plan_content(plan):
     return deepcopy({key: plan[key] for key in ("name", "goal", "weeks", "sessions")})
 
 
-def save_plan(payload, start_date, *, existing=None, expected_version=None, source="manual"):
+def save_plan(payload, start_date, *, existing=None, expected_version=None, source="manual", request_id=None):
     payload = normalize_plan(deepcopy(payload))
     try:
         start_date = date.fromisoformat(start_date).isoformat()
@@ -63,6 +63,8 @@ def save_plan(payload, start_date, *, existing=None, expected_version=None, sour
         "created_at": utcnow(),
         "updated_at": utcnow(),
     }
+    if request_id is not None:
+        saved["mcp_request_id"] = request_id
     saved["_id"] = db.plans.insert_one(saved).inserted_id
     db.users.update_one({"sub": g.user["sub"]}, {"$set": {"active_plan_id": saved["_id"]}})
     return saved

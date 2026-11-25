@@ -25,6 +25,8 @@ def app():
             "AUTH0_DOMAIN": "",
             "AUTH0_CLIENT_ID": "",
             "AUTH0_CLIENT_SECRET": "",
+            "MCP_ENABLED": False,
+            "MCP_ALLOWED_ORIGINS": "",
             "OPENROUTER_API_KEY": "test-api-secret",
             "AI_REQUESTS_PER_HOUR": 20,
         },

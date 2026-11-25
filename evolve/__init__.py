@@ -34,6 +34,8 @@ def create_app(config=None, *, mongo_client=None):
         AUTH0_CLIENT_SECRET=os.getenv("AUTH0_CLIENT_SECRET", ""),
         AUTH0_ROLES_CLAIM=os.getenv("AUTH0_ROLES_CLAIM", "https://evolve.example/roles"),
         AUTH0_PRO_ROLE=os.getenv("AUTH0_PRO_ROLE", "pro"),
+        MCP_ENABLED=os.getenv("MCP_ENABLED", "false").lower() in {"true", "1", "yes"},
+        MCP_ALLOWED_ORIGINS=os.getenv("MCP_ALLOWED_ORIGINS", ""),
         OPENROUTER_API_KEY=os.getenv("OPENROUTER_API_KEY", ""),
         OPENROUTER_MODEL=os.getenv("OPENROUTER_MODEL", "openai/gpt-4.1-mini"),
         AI_REQUESTS_PER_HOUR=int(os.getenv("AI_REQUESTS_PER_HOUR", "20")),
@@ -88,12 +90,27 @@ def create_app(config=None, *, mongo_client=None):
         )
     app.extensions["auth0_oauth"] = oauth
 
-    from . import admin, analytics, auth, cli, coach, exercises, i18n, main, plans, workout_i18n, workouts
+    from . import (
+        admin,
+        analytics,
+        auth,
+        cli,
+        coach,
+        exercises,
+        i18n,
+        main,
+        mcp,
+        plans,
+        workout_i18n,
+        workouts,
+    )
     from .db import get_db
     from .utils import is_admin, is_pro, user_today
 
     for blueprint in (auth.bp, main.bp, plans.bp, workouts.bp, workouts.draft_bp, coach.bp, exercises.bp, admin.bp):
         app.register_blueprint(blueprint)
+    mcp.init_app(app)
+    csrf.exempt(mcp.bp)
     app.add_template_filter(exercises.display_hint, "exercise_hint")
     i18n.init_app(app)
     workout_i18n.init_app(app)
@@ -132,7 +149,7 @@ def create_app(config=None, *, mongo_client=None):
         )
         if request.endpoint == "static" and request.view_args.get("filename", "").startswith("exercise-images/"):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-        elif g.get("user") or request.path.startswith(("/auth/", "/api/")):
+        elif g.get("user") or request.blueprint == "mcp" or request.path.startswith(("/auth/", "/api/")):
             response.headers["Cache-Control"] = "no-store"
         elif response.mimetype == "text/html":
             response.headers["Cache-Control"] = "private, no-cache"

@@ -3,7 +3,12 @@ from datetime import date
 
 import pytest
 
-from evolve.exercise_tracking import duration_seconds, exercise_tracking, tracking_catalogue, tracking_metadata
+from evolve.exercise_tracking import (
+    duration_seconds,
+    exercise_tracking,
+    tracking_catalogue,
+    tracking_metadata,
+)
 from evolve.exercises import catalogue_exercises
 
 
