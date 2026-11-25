@@ -1,3 +1,4 @@
+import re
 from unittest.mock import Mock
 from urllib.parse import parse_qs, urlsplit
 
@@ -152,6 +153,81 @@ def test_onboarding_and_profile_update(client, db, make_user, sign_in, profile):
         assert client.get(path).status_code == 200
 
 
+def test_profile_saves_multiple_equipment_choices_and_bodyweight_preference(
+    client, db, make_user, sign_in, profile
+):
+    user = make_user(onboarded=False)
+    other = make_user(sub="auth0|other")
+    sign_in(user)
+    page = client.get("/profile").get_data(as_text=True)
+    choices = ["Dumbbells", "Machines", "Resistance bands", "Barbell"]
+    assert re.findall(r'name="equipment" value="([^"]+)"', page) == choices
+    response = client.post("/profile", data={**profile, "equipment": choices, "bodyweight_only": "true"})
+    assert response.status_code == 302
+    saved = db.users.find_one({"sub": user["sub"]})["profile"]
+    assert saved["equipment"] == choices
+    assert saved["bodyweight_only"] is True
+    assert db.users.find_one({"sub": other["sub"]})["profile"] == other["profile"]
+    page = client.get("/profile").get_data(as_text=True)
+    assert re.findall(r'name="equipment" value="([^"]+)" checked', page) == choices
+    assert re.search(r'name="bodyweight_only" value="true" checked', page)
+
+
+@pytest.mark.parametrize("bodyweight_only", [False, True])
+def test_profile_can_clear_equipment_and_change_workout_preference(
+    client, db, make_user, sign_in, profile, bodyweight_only
+):
+    user = make_user()
+    sign_in(user)
+    assert client.post("/profile", data={**profile, "bodyweight_only": "true"}).status_code == 302
+    submitted = {key: value for key, value in profile.items() if key != "equipment"}
+    if bodyweight_only:
+        submitted["bodyweight_only"] = "true"
+    assert client.post("/profile", data=submitted).status_code == 302
+    saved = db.users.find_one({"sub": user["sub"]})["profile"]
+    assert saved["equipment"] == []
+    assert saved["bodyweight_only"] is bodyweight_only
+    page = client.get("/profile").get_data(as_text=True)
+    assert not re.findall(r'name="equipment" value="([^"]+)" checked', page)
+    assert bool(re.search(r'name="bodyweight_only" value="true" checked', page)) is bodyweight_only
+
+
+def test_profile_keeps_preferences_when_another_field_is_invalid(client, db, make_user, sign_in, profile):
+    user = make_user()
+    sign_in(user)
+    choices = ["Machines", "Resistance bands", "Barbell"]
+    response = client.post("/profile", data={
+        **profile, "equipment": choices, "bodyweight_only": "true", "height_cm": "invalid",
+    })
+    assert response.status_code == 422
+    page = response.get_data(as_text=True)
+    assert re.findall(r'name="equipment" value="([^"]+)" checked', page) == choices
+    assert re.search(r'name="bodyweight_only" value="true" checked', page)
+    assert db.users.find_one({"sub": user["sub"]})["profile"] == user["profile"]
+
+
+@pytest.mark.parametrize("equipment", ["Full gym", "Home gym", "Dumbbells", "Resistance bands", "Bodyweight only"])
+def test_existing_equipment_profiles_remain_editable(client, db, make_user, sign_in, profile, equipment):
+    user = make_user()
+    db.users.update_one({"sub": user["sub"]}, {"$set": {"profile.equipment": equipment}})
+    original = db.users.find_one({"sub": user["sub"]})["profile"]
+    sign_in(user)
+    page = client.get("/profile").get_data(as_text=True)
+    expected = [] if equipment == "Bodyweight only" else [equipment]
+    assert re.findall(r'name="equipment" value="([^"]+)" checked', page) == expected
+    assert bool(re.search(r'name="bodyweight_only" value="true" checked', page)) is (equipment == "Bodyweight only")
+    assert db.users.find_one({"sub": user["sub"]})["profile"] == original
+    # Saving unrelated edits retains the equipment and converts the old format.
+    response = client.post("/profile", data={
+        **profile, "equipment": expected, "bodyweight_only": "true" if equipment == "Bodyweight only" else "false",
+        "other_specifications": "Updated schedule",
+    })
+    assert response.status_code == 302
+    saved = db.users.find_one({"sub": user["sub"]})["profile"]
+    assert saved["equipment"] == expected
+    assert saved["bodyweight_only"] is (equipment == "Bodyweight only")
+
+
 @pytest.mark.parametrize(
     "key,value",
     [
@@ -166,6 +242,8 @@ def test_onboarding_and_profile_update(client, db, make_user, sign_in, profile):
         ("session_minutes", "5"),
         ("timezone", "Not/A_Timezone"),
         ("goal", "injected"),
+        ("equipment", ["Dumbbells", "unknown"]),
+        ("bodyweight_only", "unknown"),
         ("other_specifications", "x" * 3001),
     ],
 )

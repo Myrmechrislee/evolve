@@ -930,5 +930,13 @@
   "Adductors": "内收肌群",
   "Abductors": "外展肌群",
   "Neck": "颈部",
-  "Workouts": "训练次数"
+  "Workouts": "训练次数",
+  "Workout preferences": "训练偏好",
+  "Bodyweight exercises only": "仅进行自重训练",
+  "Prefer bodyweight exercises, even when equipment is available.": "即使有可用器械，也只选择自重训练动作。",
+  "Select all you can use. Leave blank if you train without equipment.": "请选择所有可用的器械。如果不使用器械训练，可全部留空。",
+  "Machines": "健身器械",
+  "Barbell": "杠铃",
+  "Choose valid equipment.": "请选择有效的器械。",
+  "Choose a valid workout preference.": "请选择有效的训练偏好。"
 }

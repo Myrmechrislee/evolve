@@ -19,7 +19,8 @@ GOALS = [
     "Weight management",
 ]
 EXPERIENCE = ["Beginner", "Intermediate", "Advanced"]
-EQUIPMENT = ["Full gym", "Dumbbells", "Resistance bands", "Bodyweight only", "Home gym"]
+EQUIPMENT = ["Dumbbells", "Machines", "Resistance bands", "Barbell"]
+LEGACY_EQUIPMENT = ["Full gym", "Home gym"]
 
 EXERCISE_SCHEMA = {
     "type": "object",
@@ -97,6 +98,17 @@ def text(value, label, maximum, *, required=False):
     return value
 
 
+def training_preferences(profile):
+    """Read both existing single-choice profiles and saved equipment lists."""
+    equipment = profile.get("equipment", [])
+    if isinstance(equipment, str):
+        equipment = [equipment]
+    return {
+        "equipment": list(dict.fromkeys(item for item in equipment if item != "Bodyweight only")),
+        "bodyweight_only": profile.get("bodyweight_only") is True or "Bodyweight only" in equipment,
+    }
+
+
 def parse_profile(form, today):
     try:
         birthdate = date.fromisoformat(form.get("birthdate", ""))
@@ -109,16 +121,25 @@ def parse_profile(form, today):
         ZoneInfo(zone)
     except (ZoneInfoNotFoundError, ValueError):
         raise ValidationError("Enter a valid timezone, for example Asia/Shanghai or Europe/London.") from None
-    for key, choices in (("goal", GOALS), ("experience", EXPERIENCE), ("equipment", EQUIPMENT)):
+    for key, choices in (("goal", GOALS), ("experience", EXPERIENCE)):
         if form.get(key) not in choices:
             raise ValidationError(tr("Choose a valid {choice}.", choice=tr(key)))
+    equipment = form.getlist("equipment")
+    if any(item not in [*EQUIPMENT, *LEGACY_EQUIPMENT, "Bodyweight only"] for item in equipment):
+        raise ValidationError("Choose valid equipment.")
+    if form.get("bodyweight_only", "false") not in ("true", "false"):
+        raise ValidationError("Choose a valid workout preference.")
+    preferences = training_preferences({
+        "equipment": equipment,
+        "bodyweight_only": form.get("bodyweight_only") == "true",
+    })
     return {
         "birthdate": birthdate.isoformat(),
         "height_cm": bounded_number(form.get("height_cm"), "Height in cm", 50, 260),
         "weight_kg": bounded_number(form.get("weight_kg"), "Weight in kg", 20, 500),
         "goal": form["goal"],
         "experience": form["experience"],
-        "equipment": form["equipment"],
+        **preferences,
         "days_per_week": bounded_number(form.get("days_per_week"), "Training days", 1, 7, integer=True),
         "session_minutes": bounded_number(
             form.get("session_minutes"), "Session minutes", 10, 180, integer=True

@@ -80,10 +80,16 @@ def test_chinese_pages_preserve_user_content_and_profile_values(client, db, make
     assert db.plans.find_one({"_id": plan["_id"]}) == original
     text = client.get("/profile").get_data(as_text=True)
     assert 'value="Build strength"' in text and "提升力量" in text
-    response = client.post("/profile", data={**profile, "limitations": "注意膝盖", "other_specifications": "晚间训练"})
+    assert "训练偏好" in text and "仅进行自重训练" in text and "健身器械" in text and "杠铃" in text
+    response = client.post("/profile", data={
+        **profile, "equipment": ["Dumbbells", "Machines", "Resistance bands", "Barbell"],
+        "bodyweight_only": "true", "limitations": "注意膝盖", "other_specifications": "晚间训练",
+    })
     assert response.status_code == 302
     saved = db.users.find_one({"sub": user["sub"]})["profile"]
     assert saved["goal"] == "Build strength" and saved["limitations"] == "注意膝盖"
+    assert saved["equipment"] == ["Dumbbells", "Machines", "Resistance bands", "Barbell"]
+    assert saved["bodyweight_only"] is True
     assert "个人资料已更新。" in client.get("/dashboard").get_data(as_text=True)
 
 

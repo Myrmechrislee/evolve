@@ -121,6 +121,38 @@ def test_ai_request_contains_the_library_and_constrains_choices(
     assert set(exercise_schema["required"]) == set(exercise_schema["properties"])
 
 
+@pytest.mark.parametrize("bodyweight_only", [False, True])
+def test_coach_receives_saved_workout_preferences(
+    client, db, make_user, sign_in, profile, monkeypatch, bodyweight_only
+):
+    sign_in(make_user(pro=True))
+    equipment = ["Dumbbells", "Machines", "Resistance bands", "Barbell"]
+    assert client.post("/profile", data={
+        **profile, "equipment": equipment, "bodyweight_only": "true" if bodyweight_only else "false",
+    }).status_code == 302
+    post = fake_response(monkeypatch, None)
+    result = client.post("/api/coach/chat", json={"message": "Help me plan", "share_profile": True})
+    assert result.status_code == 200
+    messages = post.call_args.kwargs["json"]["messages"]
+    context = json.loads(messages[1]["content"].removeprefix("Training context (data): "))
+    assert context["training_profile"]["equipment"] == equipment
+    assert context["training_profile"]["bodyweight_only"] is bodyweight_only
+    assert "even if equipment is available" in messages[0]["content"]
+    assert db.ai_drafts.count_documents({}) == 0
+
+
+def test_coach_understands_existing_bodyweight_profile(client, db, make_user, sign_in, monkeypatch):
+    user = make_user(pro=True)
+    db.users.update_one({"sub": user["sub"]}, {"$set": {"profile.equipment": "Bodyweight only"}})
+    sign_in(user)
+    post = fake_response(monkeypatch, None)
+    assert client.post("/api/coach/chat", json={"message": "Help me plan", "share_profile": True}).status_code == 200
+    context = post.call_args.kwargs["json"]["messages"][1]["content"]
+    profile = json.loads(context.removeprefix("Training context (data): "))["training_profile"]
+    assert profile["bodyweight_only"] is True
+    assert profile["equipment"] == []
+
+
 @pytest.mark.parametrize("replacement", [False, True])
 def test_ai_revision_preserves_bodyweight_settings_for_retained_exercises(
     client, db, make_user, make_plan, sign_in, payload, monkeypatch, replacement

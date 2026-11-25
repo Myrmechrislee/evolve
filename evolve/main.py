@@ -4,7 +4,7 @@ from .db import get_db
 from .muscles import muscle_stats
 from .services import active_plan, dashboard_stats, progress, weekly_workouts
 from .utils import ValidationError, login_required, user_today, utcnow
-from .validation import EQUIPMENT, EXPERIENCE, GOALS, parse_profile
+from .validation import EQUIPMENT, EXPERIENCE, GOALS, LEGACY_EQUIPMENT, parse_profile, training_preferences
 
 bp = Blueprint("main", __name__)
 
@@ -41,6 +41,8 @@ def profile():
     error = None
     if request.method == "POST":
         values = request.form.to_dict()
+        values["equipment"] = request.form.getlist("equipment")
+        values["bodyweight_only"] = request.form.get("bodyweight_only") == "true"
         try:
             parsed = parse_profile(request.form, user_today())
         except ValidationError as exc:
@@ -54,6 +56,7 @@ def profile():
                 "success",
             )
             return redirect(url_for("main.dashboard"))
+    values = {**values, **training_preferences(values)}
     return render_template(
         "profile.html",
         values=values,
@@ -61,7 +64,7 @@ def profile():
         error=error,
         goals=GOALS,
         experiences=EXPERIENCE,
-        equipment=EQUIPMENT,
+        equipment=EQUIPMENT + [item for item in LEGACY_EQUIPMENT if item in values["equipment"]],
         active="profile",
     ), 422 if error else 200
 

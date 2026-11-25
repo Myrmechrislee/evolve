@@ -7,7 +7,7 @@ A development Flask app for building a workout routine, logging training, and fo
 - Public homepage and Auth0 Universal Login / signup / logout (OIDC through Authlib).
 - English and Simplified Chinese interfaces with a persistent language switch on the homepage and workspace.
 - Phone layouts with bottom navigation, a workspace sheet, a daily workout calendar, larger touch controls, and sticky save actions. iPhone safe areas and on-screen keyboards are accounted for; desktop navigation and the full weekly calendar remain available on larger screens.
-- First-login onboarding: birthdate, height, weight, goal, experience, available equipment, training days, session length, timezone, limitations, and a textarea for other specifications. Editable afterward.
+- First-login onboarding: birthdate, height, weight, goal, experience, workout preferences, available equipment, training days, session length, timezone, limitations, and a textarea for other specifications. Choose bodyweight exercises only and select any combination of dumbbells, machines, resistance bands, and barbell. Preferences stay editable in the profile and are shared with the Pro AI coach after consent. Existing single-choice equipment profiles remain supported.
 - MongoDB persistence for users, plans, logs, chat history, AI drafts, and per-user AI quotas. The connection string is read from **`MONGO_URL`**.
 - Free and Pro users can create, edit, follow, and delete plans manually. The editor supports 1–52 weeks, up to seven weekly sessions, and exercises with sets, reps or time, rest, and notes.
 - Pro members can generate and revise complete plans by chatting with a ChatGPT model through OpenRouter. Proposed changes remain drafts until explicitly applied. Manual editing is always available.
