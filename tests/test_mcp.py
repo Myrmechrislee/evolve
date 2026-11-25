@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from datetime import UTC, date, datetime
 from types import SimpleNamespace
 from unittest.mock import Mock
 from uuid import uuid4
@@ -88,6 +89,7 @@ def test_discovery_is_public_and_never_uses_request_host(mcp, client):
         assert response.json["resource"] == "http://localhost:9000/mcp"
         assert response.json["authorization_servers"] == ["https://tenant.auth0.test/"]
         assert set(response.json["scopes_supported"]) == set(SCOPES)
+        assert "profile:read" in response.json["scopes_supported"]
         assert response.headers["Cache-Control"] == "no-store"
     mcp.fetch_keys.assert_not_called()
 
@@ -98,12 +100,16 @@ def test_initialization_tool_discovery_and_notifications(mcp, client, version):
                                       "clientInfo": {"name": "test", "version": "1"}}, bearer=False)
     assert response.json["result"]["protocolVersion"] == (version if version != "2099-01-01" else "2025-11-25")
     tools = mcp.rpc("tools/list", bearer=False).json["result"]["tools"]
-    assert len(tools) == 10 and {tool["name"] for tool in tools} == set(TOOLS)
+    assert len(tools) == 11 and {tool["name"] for tool in tools} == set(TOOLS)
     for tool in tools:
         assert tool["securitySchemes"] == tool["_meta"]["securitySchemes"]
         assert tool["securitySchemes"][0]["scopes"] == [TOOLS[tool["name"]]["scope"]]
         if tool["name"].startswith("delete_"):
             assert tool["annotations"]["destructiveHint"] is True
+        if tool["name"] == "get_workout_profile":
+            assert tool["securitySchemes"][0]["scopes"] == ["profile:read"]
+            assert tool["annotations"] == {"readOnlyHint": True, "destructiveHint": False,
+                                           "idempotentHint": True, "openWorldHint": False}
     response = client.post("/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"})
     assert response.status_code == 202 and response.data == b""
     assert mcp.rpc("ping", bearer=False).json["result"] == {}
@@ -137,9 +143,10 @@ def test_parse_protocol_and_media_errors(mcp, client):
     assert mcp.call("unknown").json["error"]["code"] == -32602
 
 
-def test_browser_cookie_cannot_authenticate_mcp(mcp, sign_in):
+@pytest.mark.parametrize("name", ["list_workouts", "get_workout_profile"])
+def test_browser_cookie_cannot_authenticate_mcp(mcp, sign_in, name):
     sign_in(mcp.user)
-    response = mcp.call("list_workouts", bearer=False)
+    response = mcp.call(name, bearer=False)
     assert response.status_code == 401
     assert 'resource_metadata="http://localhost:9000/.well-known/oauth-protected-resource/mcp"' in response.headers["WWW-Authenticate"]
     assert response.json["result"]["_meta"]["mcp/www_authenticate"] == [response.headers["WWW-Authenticate"]]
@@ -182,14 +189,15 @@ def test_read_scope_cannot_create(mcp, db):
 
 
 @pytest.mark.parametrize("state", ["unknown", "incomplete", "deleted", "frozen"])
-def test_database_account_status_is_checked(mcp, db, state):
+@pytest.mark.parametrize("name", ["list_workouts", "get_workout_profile"])
+def test_database_account_status_is_checked(mcp, db, state, name):
     if state == "unknown":
         db.users.delete_one({"sub": mcp.user["sub"]})
     elif state == "incomplete":
         db.users.update_one({"sub": mcp.user["sub"]}, {"$unset": {"profile": ""}})
     else:
         db.users.update_one({"sub": mcp.user["sub"]}, {"$set": {"account.status": state}})
-    failure(mcp.call("list_workouts"), 403)
+    failure(mcp.call(name), 403)
 
 
 def test_frozen_browser_identity_does_not_override_bearer_identity(mcp, make_user, db, sign_in):
@@ -222,6 +230,92 @@ def test_auth0_outage_returns_safe_error_and_uses_backoff(mcp):
     assert "secret-provider-detail" not in response.get_data(as_text=True)
     failure(mcp.call("list_workouts"), 503)
     assert mcp.fetch_keys.call_count == 1
+
+
+def test_workout_profile_exposes_only_training_data_without_writing(mcp, db, monkeypatch):
+    db.users.update_one({"sub": mcp.user["sub"]}, {"$set": {"profile": {
+        **mcp.user["profile"], "height_cm": 175.0, "weight_kg": 72.5,
+        "days_per_week": 3, "session_minutes": 45, "equipment": ["Dumbbells", "Barbell"],
+        "bodyweight_only": True, "email": "private@example.test", "private_note": "Account data",
+    }}})
+    before = db.users.find_one({"sub": mcp.user["sub"]})
+    monkeypatch.setattr("evolve.mcp_tools.user_today", lambda: date(2026, 5, 15))
+    result = success(mcp.call("get_workout_profile", bearer=mcp.token({"scope": "profile:read"})))
+    assert result == {"profile": {
+        "age": 31, "height_cm": 175.0, "weight_kg": 72.5,
+        "goal": "Build strength", "experience": "Intermediate", "equipment": ["Dumbbells", "Barbell"],
+        "bodyweight_only": True, "days_per_week": 3, "session_minutes": 45, "timezone": "Asia/Shanghai",
+        "limitations": "Avoid painful movements", "other_specifications": "I prefer training after work.",
+    }}
+    assert db.users.find_one({"sub": mcp.user["sub"]}) == before
+
+
+@pytest.mark.parametrize(("equipment", "bodyweight_only", "expected_equipment", "expected_bodyweight"), [
+    ("Dumbbells", None, ["Dumbbells"], False),
+    ("Full gym", None, ["Full gym"], False),
+    ("Home gym", None, ["Home gym"], False),
+    ("Bodyweight only", False, [], True),
+    (["Bodyweight only", "Barbell"], None, ["Barbell"], True),
+    (["Machines", "Resistance bands", "Machines"], True, ["Machines", "Resistance bands"], True),
+    ([], False, [], False),
+    (None, None, [], False),
+])
+def test_workout_profile_normalizes_current_and_legacy_preferences(
+    mcp, db, equipment, bodyweight_only, expected_equipment, expected_bodyweight
+):
+    profile = deepcopy(mcp.user["profile"])
+    profile.pop("equipment")
+    if equipment is not None:
+        profile["equipment"] = equipment
+    if bodyweight_only is not None:
+        profile["bodyweight_only"] = bodyweight_only
+    db.users.update_one({"sub": mcp.user["sub"]}, {"$set": {"profile": profile}})
+    result = success(mcp.call("get_workout_profile"))["profile"]
+    assert result["equipment"] == expected_equipment
+    assert result["bodyweight_only"] is expected_bodyweight
+    assert db.users.find_one({"sub": mcp.user["sub"]})["profile"] == profile
+
+
+@pytest.mark.parametrize(("timezone", "expected_age"), [("UTC", 30), ("Asia/Shanghai", 31)])
+def test_workout_profile_age_uses_birthday_in_profile_timezone(mcp, db, monkeypatch, timezone, expected_age):
+    bearer = mcp.token({"scope": "profile:read"})
+    now = datetime(2026, 5, 14, 16, 30, tzinfo=UTC)
+    clock = Mock(wraps=datetime)
+    clock.now.side_effect = lambda zone: now.astimezone(zone)
+    monkeypatch.setattr("evolve.utils.datetime", clock)
+    db.users.update_one({"sub": mcp.user["sub"]}, {"$set": {"profile.timezone": timezone}})
+    assert success(mcp.call("get_workout_profile", bearer=bearer))["profile"]["age"] == expected_age
+
+
+def test_workout_profile_uses_bearer_identity_and_reloads_preferences(mcp, db, make_user, sign_in):
+    other = make_user("auth0|other")
+    db.users.update_one({"sub": other["sub"]}, {"$set": {"profile.equipment": ["Machines"]}})
+    other_before = db.users.find_one({"sub": other["sub"]})
+    sign_in(other)
+    bearer = mcp.token({"scope": "profile:read"})
+    assert success(mcp.call("get_workout_profile", bearer=bearer))["profile"]["equipment"] == ["Dumbbells"]
+    db.users.update_one({"sub": mcp.user["sub"]}, {"$set": {
+        "profile.equipment": [], "profile.bodyweight_only": True, "profile.other_specifications": "Train at home",
+    }})
+    profile = success(mcp.call("get_workout_profile", bearer=bearer))["profile"]
+    assert profile["equipment"] == [] and profile["bodyweight_only"] is True
+    assert profile["other_specifications"] == "Train at home"
+    assert db.users.find_one({"sub": other["sub"]}) == other_before
+
+
+@pytest.mark.parametrize("scope", ["", "workouts:read plans:read", "profile", ["profile:read"]])
+def test_workout_profile_requires_its_own_scope(mcp, scope):
+    bearer = mcp.token({"scope": scope, "permissions": list(SCOPES)})
+    response = mcp.call("get_workout_profile", bearer=bearer)
+    assert response.status_code == 403
+    assert "insufficient_scope" in response.headers["WWW-Authenticate"]
+    assert 'scope="profile:read"' in response.headers["WWW-Authenticate"]
+
+
+@pytest.mark.parametrize("name", ["list_workouts", "list_workout_plans"])
+def test_profile_scope_does_not_grant_workout_or_plan_access(mcp, name):
+    response = mcp.call(name, bearer=mcp.token({"scope": "profile:read"}))
+    assert response.status_code == 403 and "insufficient_scope" in response.headers["WWW-Authenticate"]
 
 
 def test_plan_crud_versions_and_idempotency(mcp, db, payload):
@@ -349,6 +443,7 @@ def test_confirmation_unknown_fields_and_empty_edits_are_rejected(mcp, db):
         ("delete_workout", {"workout_id": workout["id"], "expected_version": 1, "confirm": "yes"}),
         ("update_workout", {"workout_id": workout["id"], "expected_version": 1, "changes": {}}),
         ("list_workouts", {"user_id": "auth0|victim"}),
+        ("get_workout_profile", {"user_id": "auth0|victim"}),
         ("list_workout_plans", {"limit": 5000}),
     ):
         assert mcp.call(name, arguments).json["error"]["code"] == -32602
@@ -380,6 +475,7 @@ def test_database_errors_never_expose_connection_details(mcp, db, monkeypatch):
     assert "secret-database-url" not in response.get_data(as_text=True)
 
 
-def test_text_and_structured_results_match(mcp):
-    result = mcp.call("list_workouts").json["result"]
+@pytest.mark.parametrize("name", ["list_workouts", "get_workout_profile"])
+def test_text_and_structured_results_match(mcp, name):
+    result = mcp.call(name).json["result"]
     assert json.loads(result["content"][0]["text"]) == result["structuredContent"]

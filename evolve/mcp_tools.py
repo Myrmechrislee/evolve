@@ -1,4 +1,4 @@
-"""MCP tool definitions and user-scoped workout/plan operations."""
+"""MCP tool definitions and user-scoped profile/workout/plan operations."""
 
 from datetime import date, datetime
 from uuid import UUID
@@ -11,8 +11,8 @@ from werkzeug.datastructures import MultiDict
 
 from .db import get_db
 from .services import owned_plan, plan_content, progress, resolve_occurrence, save_plan
-from .utils import object_id, utcnow
-from .validation import PLAN_SCHEMA
+from .utils import object_id, user_today, utcnow
+from .validation import PLAN_SCHEMA, training_preferences
 from .workouts import (
     EXERCISE_FORM_FIELDS,
     completed_workout,
@@ -58,6 +58,10 @@ WORKOUT_FIELDS = {
     "exercises": {"type": "array", "minItems": 1, "maxItems": 20, "items": WORKOUT_EXERCISE},
 }
 PLAN_FIELDS = ("name", "goal", "weeks", "sessions", "start_date", "version", "source", "created_at", "updated_at")
+PROFILE_FIELDS = (
+    "height_cm", "weight_kg", "goal", "experience", "days_per_week", "session_minutes",
+    "timezone", "limitations", "other_specifications",
+)
 WORKOUT_OUTPUT_FIELDS = (
     "title", "logged_date", "duration_minutes", "effort", "notes", "exercises", "volume_kg",
     "total_seconds", "load_seconds_kg", "schema_version", "planned", "plan_id", "plan_name",
@@ -141,6 +145,19 @@ def workout_form(payload):
                 value = row.get(key, any(name in row for name in ("load_type", "measurement", "bodyweight_percent")))
             form.add(field, "1" if value is True else "0" if value is False else "" if value is None else str(value))
     return form
+
+
+@tool("get_workout_profile", "profile:read", "Read your training profile and preferences before personalizing workout plans: age, height in cm, weight in kg, goal, experience, available equipment, bodyweight-only preference, training days per week, session minutes, timezone, limitations, and other specifications. Excludes birthdate and account identity; does not change your profile.",
+      schema({}), read_only=True)
+def get_workout_profile(arguments):
+    profile = g.user["profile"]
+    birthdate = date.fromisoformat(profile["birthdate"])
+    today = user_today()
+    age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+    return {"profile": json_value({
+        **{key: profile[key] for key in PROFILE_FIELDS if key in profile},
+        **training_preferences(profile), "age": age,
+    })}
 
 
 @tool("list_workout_plans", "plans:read", "List your workout plans, IDs and current versions. Use get_workout_plan for sessions and exercises.",

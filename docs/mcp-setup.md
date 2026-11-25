@@ -28,10 +28,11 @@ The API Identifier includes /mcp and has no trailing slash. The token issuer has
 3. Set **Name** to **EVOLVE MCP**.
 4. Set **Identifier** to https://evolve.anle.pro/mcp.
 5. Select **RS256** as the signing algorithm, then create the API.
-6. Open the API's **Permissions** tab and add these six permissions, individually:
+6. Open the API's **Permissions** tab and add these seven permissions, individually:
 
 | Permission | Description |
 | --- | --- |
+| profile:read | Read my training profile and workout preferences |
 | workouts:read | Read my completed workouts |
 | workouts:write | Add and edit my completed workouts |
 | workouts:delete | Delete my completed workouts |
@@ -44,6 +45,8 @@ The API Identifier includes /mcp and has no trailing slash. The token issuer has
 9. If **Application Access Policy** is shown, set **User-Delegated Access** to **Per-app authorization** / **Allow via client-grant**. Leave **Client Access** denied: this integration uses users, rather than machine credentials. Authorize the dedicated ChatGPT application in step 3.
 
 These API policies and grants are described in [Auth0's API access policy guide](https://auth0.com/blog/developers-guide-api-access-policies-auth0/). API permissions are independent of EVOLVE's Free/Pro and administrator roles. Both Free and Pro users can use the MCP tools.
+
+For an existing integration, add `profile:read` to this API and to the ChatGPT application's User-Delegated Access grant. After deploying the updated server, refresh the connection's tools and reauthorize with `profile:read`. Existing workout/plan scopes do not grant access to the profile. This API permission is separate from the standard OpenID Connect `profile` scope.
 
 ## 3. Create a dedicated ChatGPT OAuth application in Auth0
 
@@ -58,7 +61,7 @@ This guide uses a **predefined OAuth client**: you register it once and enter it
 7. Under **Connections**, enable the same database/social connections used by the EVOLVE website, such as Username-Password-Authentication or Google. Use the same login method when you connect ChatGPT.
 8. Under **Allowed Callback URLs**, initially add https://chatgpt.com/connector_platform_oauth_redirect. Save. In step 6, replace or supplement this with the **exact callback URL shown by ChatGPT for this connection**. Current ChatGPT may instead display https://chatgpt.com/connector/oauth/ followed by a connection-specific callback ID. Register that complete URL, including the ID; do not use a wildcard or invent the ID.
 9. Leave **Application Login URI**, **Allowed Logout URLs**, and **Allowed Web Origins** empty for this dedicated application unless your own login policy requires a value. The OAuth callback is handled by ChatGPT. The website's existing application should retain its own /auth/callback and logout settings.
-10. Return to **Applications → APIs → EVOLVE MCP → Application Access**. Find **EVOLVE ChatGPT**, choose **Edit**, authorize **User-Delegated Access**, and select the six permissions above. Keep machine/client access disabled. Save.
+10. Return to **Applications → APIs → EVOLVE MCP → Application Access**. Find **EVOLVE ChatGPT**, choose **Edit**, authorize **User-Delegated Access**, and select the seven permissions above. Keep machine/client access disabled. Save.
 
 Do not replace AUTH0_CLIENT_ID or AUTH0_CLIENT_SECRET in EVOLVE's .env with this new application's credentials. Those environment variables still belong to the website. MCP verification uses Auth0's public signing keys and does not need the new client secret.
 
@@ -151,7 +154,7 @@ curl --fail-with-body \
   https://evolve.anle.pro/mcp
 ```
 
-Expected: metadata containing the exact resource URL and Auth0 issuer, a successful initialization response advertising tools, and ten tool definitions. These operations intentionally need no bearer token and reveal no workout or account data.
+Expected: metadata containing the exact resource URL and Auth0 issuer, a successful initialization response advertising tools, and eleven tool definitions. These operations intentionally need no bearer token and reveal no workout or account data.
 
 A browser GET to /mcp returns **405** by design: use POST. Opening the metadata URL in a browser should return **200** JSON.
 
@@ -176,7 +179,7 @@ The current [OpenAI connection guide](https://developers.openai.com/plugins/depl
 1. Open [ChatGPT Plugins](https://chatgpt.com/plugins) in the account/workspace where you want EVOLVE.
 2. Select the **plus** button, then **Add custom MCP server**.
 3. Set **Name** to **EVOLVE**.
-4. Set **Description** to **Manage my EVOLVE workout history and workout plans.**
+4. Set **Description** to **Read my EVOLVE training profile and preferences, and manage my workout history and workout plans.**
 5. Under **Connection**, choose a public endpoint and enter https://evolve.anle.pro/mcp.
 6. Choose **OAuth** authentication.
 7. Choose **Predefined** / **Use your own OAuth client credentials** where registration mode is offered. Enter the **EVOLVE ChatGPT** Auth0 application's Client ID and Client Secret. Select client_secret_post / POST if a token authentication-method selector is shown. Do not enter website credentials or choose CIMD/DCR for this path.
@@ -184,7 +187,7 @@ The current [OpenAI connection guide](https://developers.openai.com/plugins/depl
 9. If a scope field is shown, enter the following space-separated scopes:
 
 ```text
-openid offline_access workouts:read workouts:write workouts:delete plans:read plans:write plans:delete
+openid offline_access profile:read workouts:read workouts:write workouts:delete plans:read plans:write plans:delete
 ```
 
 10. Copy the **exact OAuth redirect/callback URI** shown in the connection form or the saved MCP server management page.
@@ -200,7 +203,7 @@ openid offline_access workouts:read workouts:write workouts:delete plans:read pl
 1. Open **Settings → Apps → Advanced settings → Developer mode**, if your account exposes this switch.
 2. Choose **Create app** in Apps settings. Some workspace layouts use **Workspace settings → Apps → Create**.
 3. Enter the same name, endpoint, OAuth credentials, callback, and scopes described above.
-4. Choose **Scan Tools**, finish the Auth0 login, review the ten tools, and choose **Create**.
+4. Choose **Scan Tools**, finish the Auth0 login, review the eleven tools, and choose **Create**.
 5. Enable EVOLVE in a new conversation through the tools/apps picker or @ mention.
 
 Availability and publishing permissions depend on the account/workspace. If custom MCP creation is absent, the workspace owner may need to enable it or create the connection. These interface variations are documented in [OpenAI's custom MCP help page](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt). This integration is a custom MCP server; a Custom GPT's Actions/OpenAPI screen is a different integration and cannot import /mcp.
@@ -209,7 +212,7 @@ Availability and publishing permissions depend on the account/workspace. If cust
 
 Use a disposable test plan/workout when testing writes:
 
-1. Ask: **“Using EVOLVE, list my workout plans and recent workouts.”** Confirm only your account's existing records appear.
+1. Ask: **“Using EVOLVE, read my training profile and workout preferences, then list my workout plans and recent workouts.”** Confirm your saved goals, equipment, bodyweight preference, schedule, and only your account's existing records appear.
 2. Ask: **“Create a four-week plan starting December 7, 2026, with a Monday full-body session: goblet squat, 3 sets of 10, 90 seconds rest; dumbbell row, 3 sets of 10, 60 seconds rest.”**
 3. Ask: **“Change that plan's name to December strength.”** The tool should read/use the latest version.
 4. Ask: **“Log a freestyle workout on November 24, 2026: 40 minutes, effort 7/10, three sets of 10 goblet squats at 20 kg.”**
@@ -223,6 +226,7 @@ Replace these example dates when testing after they cease to fit your intended s
 
 | Tool | Required API permission | Behavior |
 | --- | --- | --- |
+| get_workout_profile | profile:read | Read-only training profile and normalized workout preferences; age replaces birthdate |
 | list_workouts | workouts:read | Paginated summaries; optional inclusive date range and plan ID |
 | get_workout | workouts:read | Full workout/exercise snapshot and version |
 | create_workout | workouts:write | Completed freestyle or planned workout; UUID request ID |
@@ -235,6 +239,8 @@ Replace these example dates when testing after they cease to fit your intended s
 | delete_workout_plan | plans:delete | ID, expected version, and confirm="DELETE"; preserves logs |
 
 The tools/list response is the source of truth for exact JSON schemas. Lists accept limit from 1 to 50 and offset; follow next_offset until null. Create operations require a new UUID request_id for each intended record. Reuse it when retrying the same creation. A duplicate planned occurrence returns the existing workout with deduplicated=true.
+
+Call `get_workout_profile` with `{}` before personalizing a plan. It returns a `profile` object containing age (calculated in the profile timezone), height_cm, weight_kg, goal, experience, equipment, bodyweight_only, days_per_week, session_minutes, timezone, limitations, and other_specifications. Equipment is always a list: existing single-choice profiles are normalized, legacy “Bodyweight only” becomes an empty equipment list with bodyweight_only=true, and missing preferences default to []/false. Available equipment remains listed when a user separately prefers bodyweight-only exercises. Optional fields absent from older profiles remain omitted. Account identity, birthdate, roles, and membership details are excluded. The call reloads the authenticated user's saved data without changing it; profile edits remain available on the EVOLVE website.
 
 Use get_workout_plan before updating plan content. Preserve existing session/exercise IDs; a full replacement omitting sessions removes them when history permits. Plans allow 1–52 weeks, 1–7 sessions on distinct weekdays, and 1–15 exercises per session. Existing completed sessions prevent changing their weekday, removing their session, shortening the plan past their week, or changing the plan's start date.
 
@@ -250,13 +256,13 @@ Transport: stateless Streamable HTTP JSON response mode, supporting MCP revision
 
 Use this alternative only if you prefer ChatGPT to register its OAuth application automatically or your ChatGPT interface does not offer predefined credentials.
 
-1. Keep the API, six scopes, offline access, and resource compatibility setting from steps 2 and 4.
+1. Keep the API, seven scopes, offline access, and resource compatibility setting from steps 2 and 4.
 2. Under **Auth0 Settings → Advanced**, enable **Dynamic Client Registration (DCR)** and retain **Strict** security mode where available.
 3. Configure the desired Auth0 database/social connection so dynamically registered applications can use it. Under the tenant's advanced settings, **Enable Application Connections**, when offered, controls availability for newly created applications. For existing generated clients, inspect their enabled connections.
 4. In ChatGPT, select **OAuth → DCR** / **Dynamic registration**. Leave any manually supplied Client ID/Client Secret fields empty.
 5. If Auth0 also advertises CIMD, explicitly select DCR in the ChatGPT builder for this workflow.
 6. Connect once so ChatGPT can create its application. Then locate that generated application under **Auth0 Applications → Applications**.
-7. Authorize the generated application under **EVOLVE MCP API → Application Access**, granting **User-Delegated Access** for the six scopes. Retry Connect. For multiple dynamically registered clients, the API's **Default Permissions for third-party applications** can supply approved baseline permissions, if your tenant exposes that setting.
+7. Authorize the generated application under **EVOLVE MCP API → Application Access**, granting **User-Delegated Access** for the seven scopes. Retry Connect. For multiple dynamically registered clients, the API's **Default Permissions for third-party applications** can supply approved baseline permissions, if your tenant exposes that setting.
 8. Inspect the generated application's allowed callback URL and login connections if authorization fails. DCR normally registers the redirect URL for you.
 9. Finish sign-in and tool scanning as in step 6.
 
@@ -272,7 +278,7 @@ See [Auth0's guide to connecting a remote MCP server to ChatGPT](https://auth0.c
 | A browser GET to /mcp returns 405 | Expected. Use POST with JSON for MCP; use the metadata URL for a browser check. |
 | Callback URL mismatch | Copy the exact callback displayed by this ChatGPT connection. Register the complete URI, including any callback ID, on the dedicated Auth0 application. |
 | invalid_client during token exchange | Check the dedicated client ID/secret and client_secret_post method. Website credentials and ChatGPT OAuth credentials belong to different applications. |
-| invalid_scope or “not all authorizations granted” | Define all six API permissions; grant them to this application; check enabled RBAC roles. Request space-separated scopes. |
+| invalid_scope or “not all authorizations granted” | Define all seven API permissions; grant them to this application; check enabled RBAC roles. Request space-separated scopes. |
 | Client is not authorized to access the API | In EVOLVE MCP → Application Access, authorize User-Delegated Access for the actual client used by ChatGPT. DCR clients also need a grant. |
 | “userinfo audience is not allowed” or access token rejected | Enable Resource Parameter Compatibility Profile; make the API Identifier exactly https://evolve.anle.pro/mcp. Do not use a website ID token. |
 | No login connections available | Enable the same database/social connection on the dedicated or DCR-created application. |
@@ -296,9 +302,9 @@ python -m pytest
 python -m ruff check evolve tests scripts app.py demo.py
 ```
 
-The MCP tests use real signed RSA test tokens, mocked Auth0 JWKS, and isolated MongoDB data. They cover OAuth failures/scopes/rotation, public discovery, protocol errors, CSRF isolation, account/ownership checks, CRUD, duplicate creates, stale versions, and historical snapshots. Live ChatGPT/Auth0 authorization must be verified in your own account after configuration.
+The MCP tests use real signed RSA test tokens, mocked Auth0 JWKS, and isolated MongoDB data. They cover OAuth failures/scopes/rotation, public discovery, profile privacy and preferences (including legacy equipment and timezone-aware age), protocol errors, CSRF isolation, account/ownership checks, CRUD, duplicate creates, stale versions, and historical snapshots. Live ChatGPT/Auth0 authorization must be verified in your own account after configuration.
 
-Local verification for this change: **463 tests passed**, including **59 MCP tests**; Ruff and git diff whitespace checks passed.
+Local verification for this change: **487 tests passed**, including **83 MCP tests**; Ruff and git diff whitespace checks passed.
 
 - [OpenAI: connect and test a custom MCP server](https://developers.openai.com/plugins/deploy/connect-chatgpt)
 - [OpenAI: OAuth authentication, callback URLs, resource metadata, scopes and challenges](https://developers.openai.com/plugins/build/auth)

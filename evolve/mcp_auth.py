@@ -14,6 +14,7 @@ from .db import get_db
 from .utils import is_frozen
 
 SCOPES = (
+    "profile:read",
     "workouts:read", "workouts:write", "workouts:delete",
     "plans:read", "plans:write", "plans:delete",
 )
