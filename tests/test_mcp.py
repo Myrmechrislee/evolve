@@ -243,7 +243,8 @@ def test_workout_profile_exposes_only_training_data_without_writing(mcp, db, mon
     result = success(mcp.call("get_workout_profile", bearer=mcp.token({"scope": "profile:read"})))
     assert result == {"profile": {
         "age": 31, "height_cm": 175.0, "weight_kg": 72.5,
-        "goal": "Build strength", "experience": "Intermediate", "equipment": ["Dumbbells", "Barbell"],
+        "goal": "Build strength", "goals": ["Build strength"], "available_days": [],
+        "experience": "Intermediate", "equipment": ["Dumbbells", "Barbell"],
         "bodyweight_only": True, "days_per_week": 3, "session_minutes": 45, "timezone": "Asia/Shanghai",
         "limitations": "Avoid painful movements", "other_specifications": "I prefer training after work.",
     }}

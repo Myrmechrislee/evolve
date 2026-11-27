@@ -30,6 +30,7 @@
   {% endfor %}
   {% if is_pro %}<a class="nav-link {% if active == 'coach' %}active{% endif %}" href="{{ url_for('coach.index') }}" {% if active == 'coach' %}aria-current="page"{% endif %}>{{ icon('spark') }}{{ tr('AI coach') }}<span class="badge pro">PRO</span></a>{% endif %}
   <a class="nav-link {% if active == 'profile' %}active{% endif %}" href="{{ url_for('main.profile') }}" {% if active == 'profile' %}aria-current="page"{% endif %}>{{ icon('user') }}{{ tr('Training profile') }}</a>
+  <a class="nav-link {% if active == 'account' %}active{% endif %}" href="{{ url_for('account.index') }}" {% if active == 'account' %}aria-current="page"{% endif %}>{{ icon('lock') }}{{ tr('Account data') }}</a>
   {% if is_admin %}<a class="nav-link {% if active == 'admin' %}active{% endif %}" href="{{ url_for('admin.index') }}" {% if active == 'admin' %}aria-current="page"{% endif %}>{{ icon('lock') }}{{ tr('Admin dashboard') }}</a>{% endif %}
 {% endmacro %}
 

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import csrf_field, icon %}
+{% block title %}{{ tr('Assign muscle group') }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('main.dashboard') }}#muscle-activity">{{ tr('← Muscle activity') }}</a>
+<div class="page-heading"><div><span class="eyebrow">{{ tr('CUSTOM EXERCISE') }}</span><h1>{{ tr('Assign a muscle group') }}</h1><p>{{ tr('This updates only this exercise entry in your workout history.') }}</p></div></div>
+<section class="card form-card"><h2>{{ exercise.name|workout_text }}</h2><p class="small muted">{{ log.title|workout_text }} · {{ log.logged_date|shortdate }}</p>
+<form method="post">{{ csrf_field() }}<label>{{ tr('Primary muscle group') }}<select name="muscle_group" required><option value="">{{ tr('Choose a group') }}</option>{% for key, label in muscle_choices.items() %}<option value="{{ key }}">{{ tr(label) }}</option>{% endfor %}</select></label><div class="form-footer"><a class="text-link" href="{{ url_for('main.dashboard') }}#muscle-activity">{{ tr('Cancel') }}</a><button class="button">{{ tr('Save muscle group') }} {{ icon('check') }}</button></div></form></section>
+{% endblock %}

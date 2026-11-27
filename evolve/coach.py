@@ -37,10 +37,11 @@ AI_LIBRARY = {
 }
 AI_LIBRARY_NAMES = frozenset(exercise["name"] for exercise in AI_LIBRARY.values())
 AI_PLAN_SCHEMA = deepcopy(PLAN_SCHEMA)
+AI_PLAN_SCHEMA["required"].append("week_overrides")
 AI_EXERCISE_SCHEMA = AI_PLAN_SCHEMA["properties"]["sessions"]["items"]["properties"]["exercises"]["items"]
 # Keep the provider's strict schema fully required. Tracking is inferred locally
 # from the selected library exercise and its reps/time target.
-for field in ("load_type", "measurement", "bodyweight_percent", "tracking_override"):
+for field in ("load_type", "measurement", "bodyweight_percent", "tracking_override", "target_weight_kg"):
     AI_EXERCISE_SCHEMA["properties"].pop(field)
 AI_EXERCISE_SCHEMA["properties"].pop("name")
 AI_EXERCISE_SCHEMA["properties"]["library_id"] = {"type": "integer", "enum": list(AI_LIBRARY)}
@@ -83,6 +84,7 @@ warm-up, rest and progression cues in exercise notes. Stop exercises that cause 
 Return JSON matching the schema. For a question, plan may be null. When asked to
 generate or edit, return the FULL proposed plan and a concise explanation of changes.
 Use one session per weekday, at most 7 sessions, and 1-15 exercises per session.
+Use week_overrides when a week needs different days, exercises, sets, or reps.
 Every exercise in a proposed plan MUST come from the exercise library below.
 Select its library_id and use the listed equipment and movement variation.
 Never invent an exercise, use a different variation under a library name, or put
@@ -95,13 +97,15 @@ Keep plans compact. Reps can be a number, range, or a duration such as '30 secon
 For edits preserve existing session and exercise IDs when their identity continues.
 For new sessions/exercises use an empty string for id. Never remove completed
 sessions, change their weekdays, or reduce weeks below a completed occurrence.
+Preserve existing week_overrides unless the user asks to change them.
 Never claim a plan was saved: the user must review and explicitly apply the draft.
 """
 
 
 def normalize_library_plan(payload):
     content = normalize_plan(deepcopy(payload))
-    for session in content["sessions"]:
+    sessions = content["sessions"] + [session for week in content["week_overrides"] for session in week["sessions"]]
+    for session in sessions:
         for exercise in session["exercises"]:
             match = exercise_hint(exercise["name"])
             if match is None or match["name"] not in AI_LIBRARY_NAMES:
@@ -117,7 +121,9 @@ def normalize_library_plan(payload):
 
 def normalize_generated_plan(payload):
     content = deepcopy(payload)
-    for session in content["sessions"]:
+    sessions = content["sessions"] + [session for week in content.get("week_overrides", [])
+                                      for session in week["sessions"]]
+    for session in sessions:
         for exercise in session["exercises"]:
             exercise["name"] = AI_LIBRARY[exercise.pop("library_id")]["name"]
     return normalize_library_plan(content)
@@ -269,6 +275,9 @@ def chat():
             raise ValueError("Incomplete response")
         stage = "content_json"
         result = json.loads(choice["message"]["content"])
+        # Accept older provider/test responses that predate week-specific schedules.
+        if isinstance(result, dict) and isinstance(result.get("plan"), dict):
+            result["plan"].setdefault("week_overrides", [])
         stage = "response_schema"
         if not Draft202012Validator(RESPONSE_SCHEMA).is_valid(result):
             raise ValueError("Invalid response schema")

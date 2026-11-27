@@ -60,6 +60,7 @@ def muscle_stats(logs, today, period="month"):
         for key, label, name in MUSCLE_GROUPS
     }
     unassigned = 0
+    unassigned_entry = None
     workout_count = 0
     for log in logs:
         day = log["logged_date"]
@@ -67,12 +68,14 @@ def muscle_stats(logs, today, period="month"):
             continue
         workout_count += 1
         worked = set()
-        for exercise in log["exercises"]:
+        for index, exercise in enumerate(log["exercises"]):
             muscles = exercise_muscles(exercise)
             primary = set(muscles["primary_muscles"]) & groups.keys()
             secondary = (set(muscles["secondary_muscles"]) & groups.keys()) - primary
             if not primary and not secondary:
                 unassigned += 1
+                if unassigned_entry is None and "_id" in log:
+                    unassigned_entry = {"log_id": log["_id"], "index": index, "name": exercise["name"]}
             sets = exercise["sets"]
             reps = sets * (exercise.get("reps") or 0)
             volume = exercise.get("volume_kg", reps * exercise.get("weight_kg", 0))
@@ -102,4 +105,5 @@ def muscle_stats(logs, today, period="month"):
             "period": period, "periods": PERIODS, "start": start, "end": today,
             "active": max(rows, key=lambda group: group["sets"])["key"],
             "trained": sum(group["sets"] > 0 for group in rows), "unassigned": unassigned,
+            "unassigned_entry": unassigned_entry,
             "workouts": workout_count}

@@ -1,0 +1,4 @@
+.exercise-history { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.exercise-history-option { border: 0; background: none; color: var(--forest); padding: 2px 0; margin-right: 7px; font-size: 10px; line-height: 1.35; text-align: left; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.exercise-history-option:hover, .exercise-history-option:focus-visible { color: #527334; }
+.exercise-volume-change { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.4; }

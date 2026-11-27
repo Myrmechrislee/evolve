@@ -23,7 +23,9 @@ def editor(existing=None):
     initial = (
         plan_content(existing)
         if existing
-        else {"name": "", "goal": tr(g.user["profile"]["goal"]), "weeks": 4, "sessions": []}
+        else {"name": "", "goal": ", ".join(tr(goal) for goal in
+                                         (g.user["profile"].get("goals") or [g.user["profile"]["goal"]])),
+              "weeks": 4, "sessions": []}
     )
     start_date = existing["start_date"] if existing else user_today().isoformat()
     error = None

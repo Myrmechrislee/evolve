@@ -18,7 +18,13 @@ def owned_plan(plan_id):
 
 
 def plan_content(plan):
-    return deepcopy({key: plan[key] for key in ("name", "goal", "weeks", "sessions")})
+    return deepcopy({key: plan[key] for key in ("name", "goal", "weeks", "sessions")}
+                    | {"week_overrides": plan.get("week_overrides", [])})
+
+
+def sessions_for_week(plan, week):
+    return next((item["sessions"] for item in plan.get("week_overrides", [])
+                 if item["week"] == week), plan["sessions"])
 
 
 def save_plan(payload, start_date, *, existing=None, expected_version=None, source="manual", request_id=None):
@@ -32,13 +38,15 @@ def save_plan(payload, start_date, *, existing=None, expected_version=None, sour
         logged = list(
             db.workouts.find({"user_id": g.user["sub"], "plan_id": existing["_id"], "planned": True})
         )
-        sessions = {item["id"]: item for item in payload["sessions"]}
-        old_sessions = {item["id"]: item for item in existing["sessions"]}
         for log in logged:
-            if log["week"] > payload["weeks"] or log["session_id"] not in sessions:
+            if log["week"] > payload["weeks"]:
                 raise ValidationError(
                     "A completed session cannot be removed. Keep its session and enough weeks in this plan."
                 )
+            sessions = {item["id"]: item for item in sessions_for_week(payload, log["week"])}
+            old_sessions = {item["id"]: item for item in sessions_for_week(existing, log["week"])}
+            if log["session_id"] not in sessions:
+                raise ValidationError("A completed session cannot be removed from its week.")
             if sessions[log["session_id"]]["day"] != old_sessions[log["session_id"]]["day"]:
                 raise ValidationError("A session with workout history must keep its weekday.")
         if logged and start_date != existing["start_date"]:
@@ -83,7 +91,7 @@ def occurrences(plan):
     start = date.fromisoformat(plan["start_date"])
     result = []
     for week in range(1, plan["weeks"] + 1):
-        for item in plan["sessions"]:
+        for item in sessions_for_week(plan, week):
             scheduled = start + timedelta(
                 days=(DAYS.index(item["day"]) - start.weekday()) % 7 + (week - 1) * 7
             )
@@ -126,7 +134,7 @@ def resolve_occurrence(value):
     except (ValueError, AttributeError):
         raise ValidationError("Choose a valid planned session.") from None
     plan = owned_plan(plan_id)
-    item = next((item for item in plan["sessions"] if item["id"] == session_id), None)
+    item = next((item for item in sessions_for_week(plan, week) if item["id"] == session_id), None)
     if not item or not 1 <= week <= plan["weeks"]:
         raise ValidationError("That planned session no longer exists. Reload the plan.")
     return plan, item, week

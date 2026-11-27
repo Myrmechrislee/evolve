@@ -10,7 +10,7 @@ from pymongo.errors import DuplicateKeyError
 from werkzeug.datastructures import MultiDict
 
 from .db import get_db
-from .services import owned_plan, plan_content, progress, resolve_occurrence, save_plan
+from .services import owned_plan, plan_content, progress, resolve_occurrence, save_plan, sessions_for_week
 from .utils import object_id, user_today, utcnow
 from .validation import PLAN_SCHEMA, training_preferences
 from .workouts import (
@@ -57,7 +57,7 @@ WORKOUT_FIELDS = {
     "notes": {"type": "string", "maxLength": 3000},
     "exercises": {"type": "array", "minItems": 1, "maxItems": 20, "items": WORKOUT_EXERCISE},
 }
-PLAN_FIELDS = ("name", "goal", "weeks", "sessions", "start_date", "version", "source", "created_at", "updated_at")
+PLAN_FIELDS = ("name", "goal", "weeks", "sessions", "week_overrides", "start_date", "version", "source", "created_at", "updated_at")
 PROFILE_FIELDS = (
     "height_cm", "weight_kg", "goal", "experience", "days_per_week", "session_minutes",
     "timezone", "limitations", "other_specifications",
@@ -101,9 +101,12 @@ def json_value(value):
 
 
 def export_plan(plan, *, summary=False):
-    fields = [field for field in PLAN_FIELDS if not summary or field != "sessions"]
+    fields = [field for field in PLAN_FIELDS if not summary or field not in {"sessions", "week_overrides"}]
     return json_value({"id": plan["_id"], **{key: plan[key] for key in fields if key in plan},
-                       "session_count": len(plan["sessions"]), "active": g.user.get("active_plan_id") == plan["_id"]})
+                       "session_count": len(plan["sessions"]),
+                       "planned_session_count": sum(len(sessions_for_week(plan, week))
+                                                    for week in range(1, plan["weeks"] + 1)),
+                       "active": g.user.get("active_plan_id") == plan["_id"]})
 
 
 def export_workout(workout, *, summary=False):
@@ -147,7 +150,7 @@ def workout_form(payload):
     return form
 
 
-@tool("get_workout_profile", "profile:read", "Read your training profile and preferences before personalizing workout plans: age, height in cm, weight in kg, goal, experience, available equipment, bodyweight-only preference, training days per week, session minutes, timezone, limitations, and other specifications. Excludes birthdate and account identity; does not change your profile.",
+@tool("get_workout_profile", "profile:read", "Read your training profile and preferences before personalizing workout plans: age, height in cm, weight in kg, goals, experience, available weekdays and equipment, bodyweight-only preference, training days per week, session minutes, timezone, limitations, and other specifications. Excludes birthdate and account identity; does not change your profile.",
       schema({}), read_only=True)
 def get_workout_profile(arguments):
     profile = g.user["profile"]
@@ -199,7 +202,7 @@ def create_plan(arguments):
     return {"plan": export_plan(saved), "deduplicated": False}
 
 
-@tool("update_workout_plan", "plans:write", "Edit your plan using its latest expected_version. A supplied plan replaces its full content: preserve unchanged sessions and stable IDs. Logged sessions keep their weekday and start date. Read and retry if the version changed.",
+@tool("update_workout_plan", "plans:write", "Edit your plan using its latest expected_version. A supplied plan replaces its full content: preserve unchanged sessions and stable IDs. Logged occurrences keep their session ID and weekday in that week; the start date is locked. Read and retry if the version changed.",
       schema({"plan_id": ID, "expected_version": VERSION, "plan": PLAN_SCHEMA, "start_date": DATE},
              ("plan_id", "expected_version"), anyOf=[{"required": ["plan"]}, {"required": ["start_date"]}]),
       destructive=True)

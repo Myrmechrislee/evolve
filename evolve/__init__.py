@@ -63,6 +63,14 @@ def create_app(config=None, *, mongo_client=None):
     if app.config["APP_ENV"] == "production" and base.scheme != "https":
         raise RuntimeError("Production requires an HTTPS APP_BASE_URL.")
 
+    @app.before_request
+    def content_length_for_large_forms():
+        # CSRF reads request.form before route handlers, so these limits must be set first.
+        if request.method == "POST" and request.path == "/account/import":
+            request.max_content_length = 51 * 1024 * 1024
+        elif request.method == "POST" and request.path.startswith("/plans/"):
+            request.max_content_length = 2 * 1024 * 1024
+
     csrf.init_app(app)
     if mongo_client is not None:
         app.extensions["mongo"] = mongo_client
@@ -91,6 +99,7 @@ def create_app(config=None, *, mongo_client=None):
     app.extensions["auth0_oauth"] = oauth
 
     from . import (
+        account,
         admin,
         analytics,
         auth,
@@ -107,7 +116,8 @@ def create_app(config=None, *, mongo_client=None):
     from .db import get_db
     from .utils import is_admin, is_pro, user_today
 
-    for blueprint in (auth.bp, main.bp, plans.bp, workouts.bp, workouts.draft_bp, coach.bp, exercises.bp, admin.bp):
+    for blueprint in (auth.bp, main.bp, plans.bp, workouts.bp, workouts.draft_bp, coach.bp,
+                      exercises.bp, account.bp, admin.bp):
         app.register_blueprint(blueprint)
     mcp.init_app(app)
     csrf.exempt(mcp.bp)

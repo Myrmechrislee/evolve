@@ -14,7 +14,7 @@
   background: var(--mint-soft);
   border-color: var(--mint);
 }
-.profile-choice input[type="checkbox"] {
+.profile-choice input[type="checkbox"], .profile-choice input[type="radio"] {
   flex-shrink: 0;
   width: 20px;
   min-width: 20px;
@@ -37,6 +37,13 @@
 .profile-equipment { min-width: 0; padding: 0; margin: 24px 0 0; border: 0; }
 .profile-equipment legend { padding: 0; font-size: 13px; font-weight: 600; color: #4b5a43; }
 .profile-equipment-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.profile-goals { margin-top: 0; }
+.profile-experience-options { display: grid; gap: 10px; margin-top: 14px; }
+.profile-experience { align-items: flex-start; }
+.profile-experience strong { display: block; }
+.profile-schedule { margin-top: 24px; }
+.profile-weekdays { display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 8px; margin-top: 14px; }
+.profile-weekdays .profile-choice { padding: 10px; min-height: 46px; }
 @media (max-width: 480px) {
   .profile-equipment-options { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .profile-choice, .profile-bodyweight strong, .profile-equipment legend { font-size: 15px; }

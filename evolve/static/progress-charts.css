@@ -1,0 +1,15 @@
+.progress-chart-grid { margin-top: 20px; }
+.volume-bars { display: flex; align-items: end; gap: 8px; min-height: 200px; margin-top: 22px; overflow-x: auto; }
+.volume-bar-column { display: flex; flex: 1 0 54px; flex-direction: column; align-items: center; gap: 6px; min-width: 54px; color: var(--muted); text-align: center; font-size: 10px; }
+.volume-bar-column > span { white-space: nowrap; }
+.volume-bar-column small { font-size: 10px; }
+.volume-bar-track { display: flex; align-items: end; height: 140px; width: min(100%, 42px); border-radius: 6px; background: #eff3e9; overflow: hidden; }
+.volume-bar-track i { display: block; width: 100%; border-radius: 5px 5px 0 0; background: var(--mint); }
+.activity-filter { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; }
+.activity-filter label { flex: 1; min-width: 160px; font-size: 12px; }
+.activity-filter select { display: block; width: 100%; margin-top: 5px; }
+.muscle-set-bars { display: grid; gap: 10px; margin-top: 16px; }
+.muscle-set-row { display: grid; grid-template-columns: minmax(90px, 130px) minmax(60px, 1fr) 36px; gap: 10px; align-items: center; font-size: 12px; }
+.muscle-set-row strong { text-align: right; }
+.muscle-set-track { height: 10px; border-radius: 6px; background: #eff3e9; overflow: hidden; }
+.muscle-set-track i { display: block; height: 100%; border-radius: inherit; background: var(--mint); }

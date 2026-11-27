@@ -1,4 +1,4 @@
-<div class="log-exercise-row" data-library-known="{{ 'true' if item.library_known else 'false' }}" data-target-sets="{{ item.target_sets|default('') }}" data-target-reps="{{ item.target|default('') }}">
+<div class="log-exercise-row" data-library-known="{{ 'true' if item.library_known else 'false' }}" data-target-sets="{{ item.target_sets|default('') }}" data-target-reps="{{ item.target|default('') }}" data-history='{{ item.history|default(none)|tojson }}'>
   <div class="exercise-name-field">
     <label>{{ tr('Exercise') }}<input name="exercise_name" data-exercise-name value="{{ item.name }}" required maxlength="100" placeholder="{{ tr('Exercise name') }}"></label>
     <div data-exercise-hint hidden></div>
@@ -31,6 +31,9 @@
   </div>
   <div class="exercise-load-field">
     <label data-weight-field {% if item.load_type == 'bodyweight' %}hidden{% endif %}>{{ tr('External weight (kg)') }}<input type="number" inputmode="decimal" name="exercise_weight" value="{{ item.weight_kg }}" min="0" max="1000" step="0.1" {% if item.load_type != 'bodyweight' %}required{% endif %}></label>
+    {% if item.target_weight_kg is defined and item.target_weight_kg is not none %}<span class="field-help">{{ tr('Plan target: {v0} kg', v0=item.target_weight_kg) }}</span>{% endif %}
+    <div class="exercise-history" data-exercise-history aria-live="polite"></div>
+    <output class="exercise-volume-change" data-volume-change aria-live="polite"></output>
     <output class="field-help" data-effective-load aria-live="polite"></output>
   </div>
   <button type="button" class="icon-button remove-row" data-remove-row aria-label="{{ tr('Remove exercise') }}">×</button>

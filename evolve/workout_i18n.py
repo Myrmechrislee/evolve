@@ -88,7 +88,9 @@ def owned_training_texts(owner):
     for plan in db.plans.find({"user_id": owner}):
         add(plan.get("name"))
         add(plan.get("goal"))
-        for session in plan.get("sessions", []):
+        sessions = plan.get("sessions", []) + [session for week in plan.get("week_overrides", [])
+                                               for session in week["sessions"]]
+        for session in sessions:
             add(session.get("title"))
             exercises(session.get("exercises", []))
     for workout in db.workouts.find({"user_id": owner}):

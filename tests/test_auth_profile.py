@@ -161,7 +161,9 @@ def test_profile_saves_multiple_equipment_choices_and_bodyweight_preference(
     sign_in(user)
     page = client.get("/profile").get_data(as_text=True)
     choices = ["Dumbbells", "Machines", "Resistance bands", "Barbell"]
-    assert re.findall(r'name="equipment" value="([^"]+)"', page) == choices
+    available = re.findall(r'name="equipment" value="([^"]+)"', page)
+    assert available[:4] == choices
+    assert {"Kettlebells", "Cable machine", "Pull-up bar", "Cardio machines"} <= set(available)
     response = client.post("/profile", data={**profile, "equipment": choices, "bodyweight_only": "true"})
     assert response.status_code == 302
     saved = db.users.find_one({"sub": user["sub"]})["profile"]

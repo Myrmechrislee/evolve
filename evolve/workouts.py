@@ -31,6 +31,50 @@ EXERCISE_FORM_FIELDS = {
 }
 
 
+def exercise_history(owner, name=None):
+    """Summarize prior loads and the most recent session volume for each exercise."""
+    wanted = name.casefold().strip() if name else None
+    result = {}
+    logs = get_db().workouts.find({"user_id": owner}).sort([("logged_date", -1), ("created_at", -1)])
+    for log in logs:
+        per_log = {}
+        for exercise in log.get("exercises", []):
+            key = exercise.get("name", "").casefold().strip()
+            if not key or wanted and key != wanted:
+                continue
+            entry = per_log.setdefault(key, {"volume_kg": 0, "weighted_kg": 0, "weighted_sets": 0})
+            entry["volume_kg"] += exercise.get("volume_kg", 0)
+            if exercise.get("load_type", "weighted") == "weighted":
+                sets = exercise.get("sets", 0)
+                entry["weighted_kg"] += exercise.get("weight_kg", 0) * sets
+                entry["weighted_sets"] += sets
+        for key, entry in per_log.items():
+            if key not in result:
+                result[key] = {"weighted_kg": 0, "weighted_sets": 0,
+                               "last_volume_kg": round(entry["volume_kg"], 2),
+                               "last_date": log["logged_date"],
+                               "last_weight_kg": round(entry["weighted_kg"] / entry["weighted_sets"], 2)
+                               if entry["weighted_sets"] else None}
+            summary = result[key]
+            summary["weighted_kg"] += entry["weighted_kg"]
+            summary["weighted_sets"] += entry["weighted_sets"]
+    for summary in result.values():
+        sets = summary.pop("weighted_sets")
+        weight = summary.pop("weighted_kg")
+        summary["average_weight_kg"] = round(weight / sets, 2) if sets else None
+        summary["plus_ten_weight_kg"] = round(summary["last_weight_kg"] * 1.1, 2) if summary["last_weight_kg"] is not None else None
+    return result if wanted is None else result.get(wanted)
+
+
+@draft_bp.get("/exercise-history")
+@login_required
+def exercise_history_api():
+    name = request.args.get("name", "").strip()
+    if not name or len(name) > 100:
+        abort(422, "Choose a valid exercise name.")
+    return jsonify(exercise_history(g.user["sub"], name) or {})
+
+
 def form_exercise_rows(form, *, validate=False):
     count = len(form.getlist("exercise_name"))
     columns = {key: form.getlist(field) for key, field in EXERCISE_FORM_FIELDS.items()}
@@ -271,8 +315,9 @@ def new():
                     "sets": 0,
                     "target_sets": item["sets"],
                     "reps": rep if tracking["measurement"] == "reps" else "",
-                    "weight_kg": 0,
+                    "weight_kg": item.get("target_weight_kg", 0),
                     "target": item["reps"],
+                    "target_weight_kg": item.get("target_weight_kg"),
                     **tracking,
                     "duration_seconds": seconds or "",
                 }
@@ -321,6 +366,9 @@ def new():
         metadata = tracking_metadata(row["name"])
         row["library_known"] = metadata["known"]
         row["tracking_basis"] = metadata["basis"]
+    history = exercise_history(g.user["sub"])
+    for row in exercise_rows:
+        row["history"] = history.get(row["name"].casefold().strip())
     plan_tables = []
     for item in get_db().plans.find({"user_id": g.user["sub"]}).sort("updated_at", -1):
         state = progress(item)
@@ -356,3 +404,30 @@ def delete(log_id):
         abort(404, "That workout could not be found.")
     flash("Workout removed. Your progress has been recalculated.", "success")
     return redirect(url_for("workouts.index"))
+
+
+@bp.route("/<log_id>/exercises/<int:index>/muscle", methods=["GET", "POST"])
+@login_required
+def exercise_muscle(log_id, index):
+    log = get_db().workouts.find_one({"_id": object_id(log_id), "user_id": g.user["sub"]})
+    if not log or index >= len(log.get("exercises", [])):
+        abort(404, "That exercise could not be found.")
+    exercise = log["exercises"][index]
+    assigned = exercise_muscles(exercise)
+    if assigned["primary_muscles"] or assigned["secondary_muscles"]:
+        abort(409, "This exercise already has a muscle group.")
+    if request.method == "POST":
+        group = request.form.get("muscle_group", "")
+        if group not in MUSCLE_CHOICES:
+            abort(422, "Choose a valid muscle group.")
+        path = f"exercises.{index}"
+        get_db().workouts.update_one(
+            {"_id": log["_id"], "user_id": g.user["sub"]},
+            {"$set": {f"{path}.muscle_group": group,
+                      f"{path}.primary_muscles": [MUSCLE_NAMES[group]],
+                      f"{path}.secondary_muscles": []}},
+        )
+        flash("Muscle group updated for this exercise entry.", "success")
+        return redirect(url_for("main.dashboard", muscle=group) + "#muscle-activity")
+    return render_template("exercise_muscle.html", log=log, exercise=exercise,
+                           index=index, muscle_choices=MUSCLE_CHOICES, active="workouts")

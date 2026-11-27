@@ -42,3 +42,12 @@ html:lang(zh-Hans) .eyebrow,html:lang(zh-Hans) .tiny-label,html:lang(zh-Hans) .s
 .language-switch button:focus-visible{outline-offset:-3px}
 .geo-attribution{display:inline-block;margin-top:4px;font-size:8px;line-height:1.4;color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 @media(max-width:740px){.public-header .brand{flex-shrink:0}.public-header nav{flex-wrap:wrap;justify-content:flex-end;gap:8px 12px}.language-switch button{padding:6px 8px;min-height:34px}.topbar{flex-wrap:wrap;min-height:63px;height:auto;padding-top:10px;padding-bottom:10px}.topbar-right{flex-shrink:0}}
+.plan-week-controls { display: flex; align-items: end; gap: 18px; flex-wrap: wrap; margin: 12px 0 18px; }
+.plan-week-controls label { min-width: 190px; font-size: 12px; font-weight: 600; }
+.plan-week-controls select { display: block; width: 100%; margin-top: 6px; }
+.editor-exercise { grid-template-columns: minmax(160px, 2fr) 65px minmax(90px, 1fr) 110px 80px 26px; }
+.editor-exercise > .remove-row { grid-column: 6; grid-row: 1; }
+.session-detail .card-heading h3 { font-size: 19px; }
+@media (max-width: 980px) {
+  .editor-exercise { grid-template-columns: minmax(120px, 1.8fr) 55px minmax(75px, 1fr) 95px 70px 24px; gap: 8px; }
+}

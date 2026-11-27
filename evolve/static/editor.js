@@ -8,7 +8,13 @@
   const list = document.querySelector("#session-list");
   const errorBox = document.querySelector("#editor-error");
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const availableDays = JSON.parse(form.dataset.availableDays || "[]").filter((day) => days.includes(day));
   const trackingCache = new Map();
+  const weekOverrides = new Map((initial.week_overrides || []).map((item) => [item.week, item.sessions]));
+  let baseSessions = initial.sessions || [];
+  let activeWeek = 0;
+  const weekSelect = document.querySelector("[data-edit-week]");
+  const resetWeek = document.querySelector("[data-reset-week]");
   const showError = (message) => {
     errorBox.textContent = tr(message);
     errorBox.classList.remove("hidden");
@@ -22,6 +28,7 @@
     row.innerHTML = `<div class="exercise-name exercise-name-field"><label>${tr("Exercise")}<input data-field="name" data-exercise-name required maxlength="100" placeholder="${tr("e.g. Goblet squat")}"></label><div data-exercise-hint hidden></div></div>
       <label>${tr("Sets")}<input data-field="sets" type="number" inputmode="numeric" min="1" max="20" required></label>
       <label>${tr("Reps / time")}<input data-field="reps" required maxlength="40" placeholder="8–12"></label>
+      <label>${tr("Target weight (kg)")}<input data-field="target_weight_kg" type="number" inputmode="decimal" min="0" max="1000" step="0.1" placeholder="${tr("Optional")}"></label>
       <label>${tr("Rest (s)")}<input data-field="rest_seconds" type="number" inputmode="numeric" min="0" max="600" required></label>
       <button type="button" class="icon-button remove-row" data-remove-exercise aria-label="${tr("Remove exercise")}">×</button>
       <label class="exercise-notes">${tr("Notes")}<span class="optional">${tr("Optional")}</span><input data-field="notes" maxlength="500" placeholder="${tr("Form cues, warm-up, progression, or substitutions…")}"></label>
@@ -36,7 +43,7 @@
         </div>
         <button type="button" class="text-button" data-reset-tracking hidden>${tr("Use library defaults")}</button>
       </details>`;
-    const defaults = { name: "", sets: 3, reps: "10", rest_seconds: 90, notes: "", load_type: "", measurement: "", bodyweight_percent: 100 };
+    const defaults = { name: "", sets: 3, reps: "10", target_weight_kg: "", rest_seconds: 90, notes: "", load_type: "", measurement: "", bodyweight_percent: 100 };
     Object.keys(defaults).forEach((key) => {
       row.querySelector(`[data-field="${key}"]`).value = exercise[key] ?? defaults[key];
     });
@@ -114,7 +121,8 @@
     const select = card.querySelector("[data-session-day]");
     const used = [...list.querySelectorAll("[data-session-day]")].map((el) => el.value);
     days.forEach((day) => select.add(new Option(tr(day), day)));
-    select.value = item.day || days.find((day) => !used.includes(day)) || "Mon";
+    select.value = item.day || availableDays.find((day) => !used.includes(day))
+      || days.find((day) => !used.includes(day)) || "Mon";
     const exercises = Array.isArray(item.exercises) && item.exercises.length ? item.exercises : [{}];
     exercises.forEach((exercise) => addExercise(card.querySelector(".editor-exercises"), exercise));
     list.append(card);
@@ -130,30 +138,66 @@
     }
     if (event.target.closest("[data-remove-session]")) {
       card.remove();
-      if (!list.children.length) addSession();
+      if (!list.children.length && !activeWeek) addSession();
     }
   });
-  const sessions = Array.isArray(initial.sessions) && initial.sessions.length ? initial.sessions : [{}];
-  sessions.forEach(addSession);
-  form.addEventListener("submit", (event) => {
-    const payload = {
-      name: form.elements.plan_name.value.trim(), goal: form.elements.plan_goal.value.trim(),
-      weeks: Number(form.elements.plan_weeks.value),
-      sessions: [...list.children].map((card) => ({
+  function readSessions() {
+    return [...list.children].map((card) => ({
         id: card.dataset.id, title: card.querySelector("[data-session-title]").value.trim(),
         day: card.querySelector("[data-session-day]").value,
         exercises: [...card.querySelectorAll(".editor-exercise")].map((row) => {
           const exercise = { id: row.dataset.id };
           row.querySelectorAll("[data-field]").forEach((input) => {
             if (["load_type", "measurement"].includes(input.dataset.field) && !input.value) return;
+            if (input.dataset.field === "target_weight_kg" && !input.value) return;
             exercise[input.dataset.field] = input.dataset.field === "tracking_override" ? input.value === "1"
               : input.type === "number" || input.dataset.field === "bodyweight_percent" ? Number(input.value) : input.value.trim();
           });
           return exercise;
         }),
-      })),
+      }));
+  }
+  function storeCurrent() {
+    const sessions = readSessions();
+    if (activeWeek) weekOverrides.set(activeWeek, sessions);
+    else baseSessions = sessions;
+  }
+  function showWeek(week) {
+    activeWeek = week;
+    if (week && !weekOverrides.has(week)) weekOverrides.set(week, structuredClone(baseSessions));
+    list.replaceChildren();
+    const sessions = week ? weekOverrides.get(week) : baseSessions;
+    sessions.forEach(addSession);
+    if (!week && !sessions.length) addSession();
+    resetWeek.hidden = !week;
+  }
+  function updateWeekChoices() {
+    const count = Math.max(1, Math.min(52, Number(form.elements.plan_weeks.value) || 1));
+    weekSelect.replaceChildren(new Option(tr("Weekly template"), "0"));
+    for (let week = 1; week <= count; week++) weekSelect.add(new Option(tr("Week {v0}", { v0: week }), String(week)));
+    if (activeWeek > count) { storeCurrent(); showWeek(0); }
+    weekSelect.value = String(activeWeek);
+  }
+  weekSelect.addEventListener("change", () => { storeCurrent(); showWeek(Number(weekSelect.value)); });
+  form.elements.plan_weeks.addEventListener("change", updateWeekChoices);
+  resetWeek.addEventListener("click", () => {
+    weekOverrides.delete(activeWeek);
+    showWeek(0);
+    weekSelect.value = "0";
+  });
+  showWeek(0);
+  updateWeekChoices();
+  form.addEventListener("submit", (event) => {
+    storeCurrent();
+    const weeks = Number(form.elements.plan_weeks.value);
+    const payload = {
+      name: form.elements.plan_name.value.trim(), goal: form.elements.plan_goal.value.trim(), weeks,
+      sessions: baseSessions,
+      week_overrides: [...weekOverrides].filter(([week]) => week <= weeks)
+        .map(([week, sessions]) => ({ week, sessions })).sort((a, b) => a.week - b.week),
     };
-    if (new Set(payload.sessions.map((session) => session.day)).size !== payload.sessions.length) {
+    if ([payload.sessions, ...payload.week_overrides.map((item) => item.sessions)].some((sessions) =>
+      new Set(sessions.map((session) => session.day)).size !== sessions.length)) {
       event.preventDefault();
       return showError("Choose a different weekday for each session.");
     }
